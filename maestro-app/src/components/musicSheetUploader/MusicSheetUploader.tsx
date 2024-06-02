@@ -8,6 +8,7 @@ import {
   FileInputBox,
   CenteredBox,
 } from "./MusicSheetUploaderStyles";
+import { useTranslation } from "react-i18next";
 
 interface MusicSheetUploaderProps {
   onFileChange: (file: File | null) => void;
@@ -18,6 +19,7 @@ const MusicSheetUploader: React.FC<MusicSheetUploaderProps> = ({
   onFileChange,
   file,
 }) => {
+  const { t } = useTranslation("components");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -54,15 +56,17 @@ const MusicSheetUploader: React.FC<MusicSheetUploaderProps> = ({
         <>
           <CenteredBox>
             <CloudUpload style={{ fontSize: "6rem", color: "#1976d2" }} />
-            <Typography>Drag and drop</Typography>
+            <Typography>{t("musicSheetUploader.DragAndDrop")}</Typography>
           </CenteredBox>
           <CenteredBox>
-            <Typography>Or</Typography>
+            <Typography>{t("musicSheetUploader.Or")}</Typography>
           </CenteredBox>
           <CenteredBox>
-            <Typography gutterBottom>Upload your music sheet!</Typography>
+            <Typography gutterBottom>
+              {t("musicSheetUploader.UploadYourMusicSheet")}
+            </Typography>
             <FileInputLabel htmlFor="file-input" theme={undefined}>
-              Browse Files
+              {t("musicSheetUploader.BrowseFiles")}
             </FileInputLabel>
             <FileInput
               id="file-input"
@@ -73,20 +77,24 @@ const MusicSheetUploader: React.FC<MusicSheetUploaderProps> = ({
             />
           </CenteredBox>
           <Typography variant="caption">
-            (Available file extensions: png, jpeg, pdf)
+            {t("musicSheetUploader.AvailableFileExtensions")}
           </Typography>
         </>
       ) : (
         <>
           <CenteredBox>
-            <Typography variant="h5">Let's groove!</Typography>
             <Typography variant="h5">
-              Your music sheet is MIDI-ready!
+              {t("musicSheetUploader.LetsGroove")}
+            </Typography>
+            <Typography variant="h5">
+              {t("musicSheetUploader.YourMusicSheetIsMIDIR")}
             </Typography>
           </CenteredBox>
           <MusicNote style={{ fontSize: "6rem", color: "#1976d2" }} />
           <Box display="flex" alignItems="center">
-            <Typography>{`Uploaded file: ${file.name}`}</Typography>
+            <Typography>{`${t("musicSheetUploader.UploadedFile")}${
+              file.name
+            }`}</Typography>
             <IconButton onClick={handleRemoveFile} aria-label="remove-file">
               <Cancel />
             </IconButton>

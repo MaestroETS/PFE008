@@ -1,10 +1,14 @@
-import FileUploadForm from "./pages/FileUploadForm";
+import MusicSheetUploadForm from "./pages/MusicSheetUploadForm";
+import i18n from "./i18n/i18n";
+import { I18nextProvider } from "react-i18next";
 
 function App() {
   return (
-    <div className="App">
-      <FileUploadForm></FileUploadForm>
-    </div>
+    <I18nextProvider i18n={i18n}>
+      <div className="App">
+        <MusicSheetUploadForm />
+      </div>
+    </I18nextProvider>
   );
 }
 

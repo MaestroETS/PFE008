@@ -1,0 +1,10 @@
+{
+  "MaestroTitle": "MAESTRO",
+  "MaestroSubTitle": "Transformez vos partitions en fichier MIDI !",
+  "OptionsTitle": "Options",
+  "OptionsSubTitle": "Personnalisez la façon dont votre partition est interprétée et comment votre symphonie MIDI est orchestrée.",
+  "MidiLabel": "Nom du fichier MIDI",
+  "IgnoreLabel": "Ignorer la première page du document",
+  "ConvertNow": "Convertir maintenant !",
+  "Reset": "Effacer"
+}

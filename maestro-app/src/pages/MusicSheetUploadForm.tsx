@@ -12,7 +12,8 @@ import {
 } from "@mui/material";
 import { styled } from "@mui/system";
 import { useForm, Controller, SubmitHandler } from "react-hook-form";
-import MusicSheetUploader from "../components/music-sheet-uploader/MusicSheetUploader";
+import MusicSheetUploader from "../components/musicSheetUploader/MusicSheetUploader";
+import { useTranslation } from "react-i18next";
 
 interface IFormInput {
   midiFileName: string;
@@ -31,7 +32,9 @@ const RoundedBox = styled(Box)({
   alignItems: "flex-start",
 });
 
-const FileUploadForm: React.FC = () => {
+const MusicSheetUploadForm: React.FC = () => {
+  const { t } = useTranslation("musicSheetUploadForm");
+
   const { control, handleSubmit, reset, setValue, watch, formState } =
     useForm<IFormInput>({
       defaultValues: {
@@ -53,9 +56,9 @@ const FileUploadForm: React.FC = () => {
   return (
     <Container maxWidth="md">
       <RoundedBox component={"form"} onSubmit={handleSubmit(onSubmit)}>
-        <Typography variant="h4">MAESTRO</Typography>
+        <Typography variant="h4">{t("MaestroTitle")}</Typography>
         <Typography variant="subtitle2" color={"gray"} gutterBottom>
-          Transform your music sheets into MIDI magic!
+          {t("MaestroSubTitle")}
         </Typography>
         <Box width={"100%"}>
           <Controller
@@ -71,13 +74,12 @@ const FileUploadForm: React.FC = () => {
         </Box>
         <Box width={"100%"} paddingY={"1em"}>
           <Divider sx={{ my: 2 }} />
-          <Typography variant="h5">Options</Typography>
+          <Typography variant="h5">{t("OptionsTitle")}</Typography>
           <Typography variant="subtitle2" color={"gray"} gutterBottom>
-            Customize how your music sheet is interpreted and your MIDI symphony
-            is orchestrated.
+            {t("OptionsSubTitle")}
           </Typography>
         </Box>
-        <FormLabel>MIDI file name</FormLabel>
+        <FormLabel>{t("MidiLabel")}</FormLabel>
         <Controller
           name="midiFileName"
           control={control}
@@ -98,7 +100,7 @@ const FileUploadForm: React.FC = () => {
               render={({ field }) => <Checkbox {...field} />}
             />
           }
-          label="Ignore first page of document"
+          label={t("IgnoreLabel")}
         />
         <Divider sx={{ my: 2 }} />
         <Box display="flex" justifyContent="flex-end" width="100%">
@@ -109,7 +111,7 @@ const FileUploadForm: React.FC = () => {
             onClick={handleResetForm}
             disabled={!formState.isDirty}
           >
-            Reset
+            {t("Reset")}
           </Button>
           <Button
             variant="contained"
@@ -117,7 +119,7 @@ const FileUploadForm: React.FC = () => {
             disabled={!file}
             type="submit"
           >
-            Convert Now!
+            {t("ConvertNow")}
           </Button>
         </Box>
       </RoundedBox>
@@ -125,4 +127,4 @@ const FileUploadForm: React.FC = () => {
   );
 };
 
-export default FileUploadForm;
+export default MusicSheetUploadForm;
