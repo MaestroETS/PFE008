@@ -1,6 +1,7 @@
 package PFE008.backend;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.InputStreamReader;
 
 /**
@@ -50,7 +51,14 @@ public class AudiverisController {
             return "Error converting file: " + e.getMessage();
         }
 
+        String mxlPath = workingDir + "/Out" + path.substring(path.lastIndexOf('/'), path.lastIndexOf('.')) + ".mxl";
+        
+        // Checking if file got converted
+		if (!new File(mxlPath).exists()) {
+			return null;
+		}
+
         // Return the .mxl path
-        return workingDir + "/Out" + path.substring(path.lastIndexOf('/'), path.lastIndexOf('.')) + ".mxl";
+        return mxlPath;
     }
 }

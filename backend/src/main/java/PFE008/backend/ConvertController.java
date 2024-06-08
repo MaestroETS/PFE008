@@ -41,6 +41,12 @@ public class ConvertController {
 		// Convert music sheet to .mxl
 		AudiverisController audiveris = new AudiverisController();
 		String mxlPath = audiveris.convert(path);
+
+		// Return error if audiveris controller hasn't converted file
+		if(mxlPath == null) {
+			return new Conversion(counter.incrementAndGet(), "Error converting the file.");
+		}
+
 		System.out.println(".MXL Path : " + mxlPath);
 
 		return new Conversion(counter.incrementAndGet(), "File converted. The .mxl Path is : " + mxlPath);
