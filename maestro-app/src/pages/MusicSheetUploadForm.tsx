@@ -14,6 +14,7 @@ import { styled } from "@mui/system";
 import { useForm, Controller, SubmitHandler } from "react-hook-form";
 import MusicSheetUploader from "../components/musicSheetUploader/MusicSheetUploader";
 import { useTranslation } from "react-i18next";
+import LanguageSwitcher from "../components/languageSwitcher/LanguageSwitcher";
 
 interface IFormInput {
   midiFileName: string;
@@ -22,10 +23,9 @@ interface IFormInput {
 }
 
 const RoundedBox = styled(Box)({
-  border: "2px solid gray",
-  borderRadius: "15px",
-  padding: "20px",
-  marginTop: "20px",
+  border: "0.125em solid gray",
+  borderRadius: "0.9375em",
+  padding: "1.25em",
   position: "relative",
   display: "flex",
   flexDirection: "column",
@@ -55,6 +55,9 @@ const MusicSheetUploadForm: React.FC = () => {
 
   return (
     <Container maxWidth="md">
+      <Box display="flex" justifyContent="flex-end" width="100%">
+        <LanguageSwitcher />
+      </Box>
       <RoundedBox component={"form"} onSubmit={handleSubmit(onSubmit)}>
         <Typography variant="h4">{t("MaestroTitle")}</Typography>
         <Typography variant="subtitle2" color={"gray"} gutterBottom>
