@@ -15,6 +15,7 @@ import { useForm, Controller, SubmitHandler } from "react-hook-form";
 import MusicSheetUploader from "../components/musicSheetUploader/MusicSheetUploader";
 import { useTranslation } from "react-i18next";
 import LanguageSwitcher from "../components/languageSwitcher/LanguageSwitcher";
+import convertToMidi from "../mocks/convertToMidiMock";
 
 interface IFormInput {
   midiFileName: string;
@@ -45,8 +46,8 @@ const MusicSheetUploadForm: React.FC = () => {
     });
   const file = watch("file");
 
-  const onSubmit: SubmitHandler<IFormInput> = (data) => {
-    console.log(data);
+  const onSubmit: SubmitHandler<IFormInput> = async (data) => {
+    await convertToMidi();
   };
 
   const handleResetForm = () => {
