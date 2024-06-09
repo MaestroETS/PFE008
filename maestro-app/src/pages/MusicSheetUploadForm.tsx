@@ -41,6 +41,15 @@ const MusicSheetUploadForm: React.FC = () => {
     });
   const file = watch("file");
 
+  const onFileChange = (file: File | null) => {
+    setValue("file", file);
+    if (file && file.name) {
+      setValue("midiFileName", file.name.split(".")[0]);
+    } else {
+      setValue("midiFileName", "");
+    }
+  };
+
   const onSubmit: SubmitHandler<FormInput> = async (data) => {
     await convertToMidi();
   };
@@ -65,7 +74,7 @@ const MusicSheetUploadForm: React.FC = () => {
             control={control}
             render={({ field }) => (
               <MusicSheetUploader
-                onFileChange={(file) => setValue("file", file)}
+                onFileChange={(file) => onFileChange(file)}
                 file={field.value}
               />
             )}
