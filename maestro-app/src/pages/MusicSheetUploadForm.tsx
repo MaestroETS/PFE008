@@ -16,12 +16,7 @@ import MusicSheetUploader from "../components/musicSheetUploader/MusicSheetUploa
 import { useTranslation } from "react-i18next";
 import LanguageSwitcher from "../components/languageSwitcher/LanguageSwitcher";
 import convertToMidi from "../mocks/convertToMidiMock";
-
-interface IFormInput {
-  midiFileName: string;
-  ignoreFirstPage: boolean;
-  file: File | null;
-}
+import { FormInput } from "../types/FormInput";
 
 const RoundedBox = styled(Box)({
   border: "0.125em solid gray",
@@ -37,7 +32,7 @@ const MusicSheetUploadForm: React.FC = () => {
   const { t } = useTranslation("musicSheetUploadForm");
 
   const { control, handleSubmit, reset, setValue, watch, formState } =
-    useForm<IFormInput>({
+    useForm<FormInput>({
       defaultValues: {
         midiFileName: "",
         ignoreFirstPage: false,
@@ -46,7 +41,7 @@ const MusicSheetUploadForm: React.FC = () => {
     });
   const file = watch("file");
 
-  const onSubmit: SubmitHandler<IFormInput> = async (data) => {
+  const onSubmit: SubmitHandler<FormInput> = async (data) => {
     await convertToMidi();
   };
 
@@ -101,7 +96,9 @@ const MusicSheetUploadForm: React.FC = () => {
             <Controller
               name="ignoreFirstPage"
               control={control}
-              render={({ field }) => <Checkbox {...field} />}
+              render={({ field }) => (
+                <Checkbox {...field} checked={field.value} />
+              )}
             />
           }
           label={t("IgnoreLabel")}
@@ -113,7 +110,7 @@ const MusicSheetUploadForm: React.FC = () => {
             color="primary"
             sx={{ mr: 1 }}
             onClick={handleResetForm}
-            disabled={!formState.isDirty}
+            disabled={!formState.isDirty && !file}
           >
             {t("Reset")}
           </Button>
