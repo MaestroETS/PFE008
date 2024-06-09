@@ -48,7 +48,12 @@ const MusicSheetUploader: React.FC<MusicSheetUploaderProps> = ({
     onFileChange(null);
   };
 
-  const { getRootProps, getInputProps } = useDropzone({ onDrop });
+  const { getRootProps, getInputProps } = useDropzone({
+    onDrop,
+    accept: {
+      "image/*": [".png", ".jpg", ".jpeg", ".pdf"],
+    },
+  });
 
   return (
     <FileInputBox {...getRootProps()}>
