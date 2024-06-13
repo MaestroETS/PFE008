@@ -1,11 +1,22 @@
 package PFE008.backend;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicLong;
 
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * ConvertController class
@@ -23,32 +34,40 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class ConvertController {
 
-	private final AtomicLong counter = new AtomicLong();
-
-	@GetMapping("/convert")
-	public Conversion convert(@RequestParam(value = "path", defaultValue = "") String path) {
+	@PostMapping("/convert")
+	public ResponseEntity<?> convert(@RequestParam("file") MultipartFile multipartFile) throws IOException {
+		FileUtil downloadUtil = new FileUtil();
 		
-		// Check if path is empty
-		if (path.isEmpty()) {
-			return new Conversion(counter.incrementAndGet(), "No path specified!");
-		}
-
-		// Check if path is valid and file exists
-		if (!new File(path).exists()) {
-			return new Conversion(counter.incrementAndGet(), "File does not exist!");
-		}
-
+		// Save input file
+		String fileName = StringUtils.cleanPath(multipartFile.getOriginalFilename());
+        Path filePath = FileUtil.saveFile(fileName, multipartFile, "In");
+		
 		// Convert music sheet to .mxl
 		AudiverisController audiveris = new AudiverisController();
-		String mxlPath = audiveris.convert(path);
+		String mxlPath = audiveris.convert(filePath.toString());
 
-		// Return error if audiveris controller hasn't converted file
-		if(mxlPath == null) {
-			return new Conversion(counter.incrementAndGet(), "Error converting the file.");
+		if (mxlPath == null) {
+			return new ResponseEntity<>("Could not convert file", HttpStatus.INTERNAL_SERVER_ERROR);
 		}
-
-		System.out.println(".MXL Path : " + mxlPath);
-
-		return new Conversion(counter.incrementAndGet(), "File converted. The .mxl Path is : " + mxlPath);
+         
+		//Build response
+        Resource resource = null;
+        try {
+            resource = downloadUtil.getFileAsResource(mxlPath);
+        } catch (IOException e) {
+            return ResponseEntity.internalServerError().build();
+        }
+         
+        if (resource == null) {
+            return new ResponseEntity<>("Could not find converted file", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+         
+        String contentType = "application/octet-stream";
+        String headerValue = "attachment; filename=\"" + resource.getFilename() + "\"";
+         
+        return ResponseEntity.ok()
+			.contentType(MediaType.parseMediaType(contentType))
+			.header(HttpHeaders.CONTENT_DISPOSITION, headerValue)
+			.body(resource); 
 	}
 }
