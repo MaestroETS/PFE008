@@ -1,0 +1,13 @@
+{
+  "musicSheetUploader": {
+    "DragAndDrop": "Glissez et déposez",
+    "Or": "Ou",
+    "UploadYourMusicSheet": "Téléversez votre partition de musique !",
+    "BrowseFiles": "Parcourir les fichiers",
+    "AvailableFileExtensions": "(Extensions de fichier disponibles : png, jpeg, pdf)",
+    "LetsGroove": "C'est parti !",
+    "YourMusicSheetIsMIDIR": "Votre partition de musique est prête pour le MIDI !",
+    "UploadedFile": "Fichier téléchargé : ",
+    "RemoveFile": "Supprimer le fichier"
+  }
+}
