@@ -64,10 +64,22 @@ const MusicSheetUploadForm: React.FC = () => {
         <LanguageSwitcher />
       </Box>
       <RoundedBox component={"form"} onSubmit={handleSubmit(onSubmit)}>
-        <Typography variant="h4">{t("MaestroTitle")}</Typography>
-        <Typography variant="subtitle2" color={"gray"} gutterBottom>
-          {t("MaestroSubTitle")}
-        </Typography>
+        <Box display="flex" marginBottom={"1.25em"}>
+          <Box marginRight={"1.25em"}>
+            <img
+              src="/resources/maestro.png"
+              width={"75"}
+              height={"75"}
+              alt="Maestro"
+            />
+          </Box>
+          <Box>
+            <Typography variant="h3">{t("MaestroTitle")}</Typography>
+            <Typography variant="subtitle2" color={"gray"}>
+              {t("MaestroSubTitle")}
+            </Typography>
+          </Box>
+        </Box>
         <Box width={"100%"}>
           <Controller
             name="file"
