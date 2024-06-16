@@ -45,7 +45,7 @@ public class ConvertController {
         String mxlPath = audiveris.convert(path);
 
         // Return error if Audiveris controller hasn't converted file
-        if(mxlPath == null) {
+        if (mxlPath == null) {
             return new Conversion(counter.incrementAndGet(), "Error converting the file.");
         }
 
@@ -55,7 +55,7 @@ public class ConvertController {
         String midiPath = convertMxlToMidi(mxlPath);
 
         // Return error if MIDI conversion fails
-        if(midiPath == null) {
+        if (midiPath == null) {
             return new Conversion(counter.incrementAndGet(), "Error converting the .mxl file to .mid.");
         }
 
