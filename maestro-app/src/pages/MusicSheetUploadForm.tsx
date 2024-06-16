@@ -32,7 +32,7 @@ const RoundedBox = styled(Box)({
 const MusicSheetUploadForm: React.FC = () => {
   const { t } = useTranslation("musicSheetUploadForm");
 
-  const { convert, loading, error } = useMaestroClient();
+  const { convert, loading } = useMaestroClient();
 
   const { control, handleSubmit, reset, setValue, watch, formState } =
     useForm<FormInput>({
@@ -44,6 +44,8 @@ const MusicSheetUploadForm: React.FC = () => {
     });
 
   const file = watch("file");
+
+  const canResetForm = (!formState.isDirty && !file) || loading;
 
   const onFileChange = (file: File | null) => {
     setValue("file", file);
@@ -62,10 +64,6 @@ const MusicSheetUploadForm: React.FC = () => {
       formData.append("file", data.file);
     }
     await convert(formData);
-  };
-
-  const handleResetForm = () => {
-    reset();
   };
 
   return (
@@ -140,8 +138,10 @@ const MusicSheetUploadForm: React.FC = () => {
             variant="contained"
             color="primary"
             sx={{ mr: 1 }}
-            onClick={handleResetForm}
-            disabled={(!formState.isDirty && !file) || loading}
+            onClick={() => {
+              reset();
+            }}
+            disabled={canResetForm}
           >
             {t("Reset")}
           </Button>
