@@ -1,0 +1,13 @@
+{
+  "musicSheetUploader": {
+    "DragAndDrop": "Drag and drop",
+    "Or": "Or",
+    "UploadYourMusicSheet": "Upload your music sheet!",
+    "BrowseFiles": "Browse Files",
+    "AvailableFileExtensions": "(Available file extensions: png, jpeg, pdf)",
+    "LetsGroove": "Let's groove!",
+    "YourMusicSheetIsMIDIR": "Your music sheet is MIDI-ready!",
+    "UploadedFile": "Uploaded file: ",
+    "RemoveFile": "Remove file"
+  }
+}
