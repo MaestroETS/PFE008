@@ -1,0 +1,5 @@
+# ignore music sheets
+*.pdf
+
+# ignore audiveris files
+backend/audiveris/
