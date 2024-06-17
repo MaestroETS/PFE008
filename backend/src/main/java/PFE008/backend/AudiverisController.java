@@ -25,7 +25,6 @@ public class AudiverisController {
      */
     public String convert(String path) {
         String workingDir = System.getProperty("user.dir");
-        System.out.println("Working Directory = " + workingDir);
         
         String audiverisPath = workingDir + "/audiveris/dist/bin/Audiveris.bat";
         String inputFile = '\"' + path + "\"";
@@ -48,10 +47,10 @@ public class AudiverisController {
             int exitCode = process.waitFor();
             System.out.println("Audiveris process exited with code: " + exitCode);
         } catch (Exception e) {
-            return "Error converting file: " + e.getMessage();
+            return null;
         }
 
-        String mxlPath = workingDir + "/Out" + path.substring(path.lastIndexOf('/'), path.lastIndexOf('.')) + ".mxl";
+        String mxlPath = workingDir + "/Out" + path.substring(path.lastIndexOf('\\'), path.lastIndexOf('.')) + ".mxl";
         
         // Checking if file got converted
 		if (!new File(mxlPath).exists()) {

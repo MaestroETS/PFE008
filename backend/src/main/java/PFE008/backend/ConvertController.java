@@ -2,12 +2,19 @@ package PFE008.backend;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * ConvertController class
@@ -17,10 +24,9 @@ import org.springframework.web.bind.annotation.RestController;
  * It will then convert the file to a .mxl file and
  * return its path.
  * 
- * MIDI conversion is to be implemented.
  * 
  * @author Charlie Poncsak, Philippe Langevin
- * @version 2024.06.11
+ * @version 2024.06.17
  */
 @RestController
 public class ConvertController {
@@ -40,28 +46,56 @@ public class ConvertController {
             return new Conversion(counter.incrementAndGet(), "File does not exist!");
         }
 
-        // Convert music sheet to .mxl
+        // Convert music sheet to .mid
         AudiverisController audiveris = new AudiverisController();
-        String mxlPath = audiveris.convert(path);
+        String midiPath = audiveris.convert(path);
 
         // Return error if Audiveris controller hasn't converted file
-        if (mxlPath == null) {
-            return new Conversion(counter.incrementAndGet(), "Error converting the file.");
-        }
-
-        System.out.println(".MXL Path : " + mxlPath);
-
-        // Convert .mxl to .mid
-        String midiPath = convertMxlToMidi(mxlPath);
-
-        // Return error if MIDI conversion fails
         if (midiPath == null) {
-            return new Conversion(counter.incrementAndGet(), "Error converting the .mxl file to .mid.");
+            return new Conversion(counter.incrementAndGet(), "Error converting the file.");
         }
 
         System.out.println(".MIDI Path : " + midiPath);
 
         return new Conversion(counter.incrementAndGet(), "File converted. The .mid Path is : " + midiPath);
+    }
+
+    @PostMapping("/convert")
+    @CrossOrigin(origins = "*")
+    public ResponseEntity<?> convert(@RequestParam("file") MultipartFile multipartFile) throws IOException {
+        FileUtil downloadUtil = new FileUtil();
+        
+        // Save input file
+        String fileName = StringUtils.cleanPath(multipartFile.getOriginalFilename());
+        Path filePath = FileUtil.saveFile(fileName, multipartFile, "In");
+        
+        // Convert music sheet to .mid
+        AudiverisController audiveris = new AudiverisController();
+        String midiPath = audiveris.convert(filePath.toString());
+
+        if (midiPath == null) {
+            return new ResponseEntity<>("Could not convert file", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+         
+        // Build response
+        Resource resource = null;
+        try {
+            resource = downloadUtil.getFileAsResource(midiPath);
+        } catch (IOException e) {
+            return ResponseEntity.internalServerError().build();
+        }
+         
+        if (resource == null) {
+            return new ResponseEntity<>("Could not find converted file", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+         
+        String contentType = "application/octet-stream";
+        String headerValue = "attachment; filename=\"" + resource.getFilename() + "\"";
+         
+        return ResponseEntity.ok()
+            .contentType(MediaType.parseMediaType(contentType))
+            .header(HttpHeaders.CONTENT_DISPOSITION, headerValue)
+            .body(resource); 
     }
 
     private String convertMxlToMidi(String mxlPath) {

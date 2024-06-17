@@ -10,13 +10,14 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+import LoadingButton from "@mui/lab/LoadingButton";
 import { styled } from "@mui/system";
 import { useForm, Controller, SubmitHandler } from "react-hook-form";
 import MusicSheetUploader from "../components/musicSheetUploader/MusicSheetUploader";
 import { useTranslation } from "react-i18next";
 import LanguageSwitcher from "../components/languageSwitcher/LanguageSwitcher";
-import convertToMidi from "../mocks/convertToMidiMock";
 import { FormInput } from "../types/FormInput";
+import useMaestroClient from "../hooks/useMaestroClient";
 
 const RoundedBox = styled(Box)({
   border: "0.125em solid gray",
@@ -31,6 +32,8 @@ const RoundedBox = styled(Box)({
 const MusicSheetUploadForm: React.FC = () => {
   const { t } = useTranslation("musicSheetUploadForm");
 
+  const { convert, loading } = useMaestroClient();
+
   const { control, handleSubmit, reset, setValue, watch, formState } =
     useForm<FormInput>({
       defaultValues: {
@@ -39,7 +42,10 @@ const MusicSheetUploadForm: React.FC = () => {
         file: null,
       },
     });
+
   const file = watch("file");
+
+  const canResetForm = (!formState.isDirty && !file) || loading;
 
   const onFileChange = (file: File | null) => {
     setValue("file", file);
@@ -51,11 +57,13 @@ const MusicSheetUploadForm: React.FC = () => {
   };
 
   const onSubmit: SubmitHandler<FormInput> = async (data) => {
-    await convertToMidi();
-  };
-
-  const handleResetForm = () => {
-    reset();
+    const formData = new FormData();
+    formData.append("midiFileName", data.midiFileName);
+    formData.append("ignoreFirstPage", data.ignoreFirstPage.toString());
+    if (data.file) {
+      formData.append("file", data.file);
+    }
+    await convert(formData);
   };
 
   return (
@@ -64,10 +72,22 @@ const MusicSheetUploadForm: React.FC = () => {
         <LanguageSwitcher />
       </Box>
       <RoundedBox component={"form"} onSubmit={handleSubmit(onSubmit)}>
-        <Typography variant="h4">{t("MaestroTitle")}</Typography>
-        <Typography variant="subtitle2" color={"gray"} gutterBottom>
-          {t("MaestroSubTitle")}
-        </Typography>
+        <Box display="flex" marginBottom={"1.25em"}>
+          <Box marginRight={"1.25em"}>
+            <img
+              src="/resources/maestro.png"
+              width={"75"}
+              height={"75"}
+              alt="Maestro"
+            />
+          </Box>
+          <Box>
+            <Typography variant="h3">{t("MaestroTitle")}</Typography>
+            <Typography variant="subtitle2" color={"gray"}>
+              {t("MaestroSubTitle")}
+            </Typography>
+          </Box>
+        </Box>
         <Box width={"100%"}>
           <Controller
             name="file"
@@ -118,19 +138,22 @@ const MusicSheetUploadForm: React.FC = () => {
             variant="contained"
             color="primary"
             sx={{ mr: 1 }}
-            onClick={handleResetForm}
-            disabled={!formState.isDirty && !file}
+            onClick={() => {
+              reset();
+            }}
+            disabled={canResetForm}
           >
             {t("Reset")}
           </Button>
-          <Button
+          <LoadingButton
             variant="contained"
             color="primary"
             disabled={!file}
             type="submit"
+            loading={loading}
           >
             {t("ConvertNow")}
-          </Button>
+          </LoadingButton>
         </Box>
       </RoundedBox>
     </Container>
