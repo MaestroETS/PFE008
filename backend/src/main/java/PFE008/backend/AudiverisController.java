@@ -25,15 +25,18 @@ public class AudiverisController {
      */
     public String convert(String path) {
         String workingDir = System.getProperty("user.dir");
-        
+        System.out.println("Working Directory: " + workingDir);
+
         String audiverisPath = workingDir + "/audiveris/dist/bin/Audiveris.bat";
         String inputFile = '\"' + path + "\"";
         String outputDir = workingDir + "/Out";
         String command = audiverisPath + " -batch -export -output " + outputDir + " -- " + inputFile;
-        
+
+        System.out.println("Audiveris command: " + command);
+
         // Run the command
         try {
-            System.out.println("Running Audiveris..\n");
+            System.out.println("Running Audiveris..");
             ProcessBuilder processBuilder = new ProcessBuilder("cmd.exe", "/c", command);
             Process process = processBuilder.start();
 
@@ -46,31 +49,43 @@ public class AudiverisController {
 
             int exitCode = process.waitFor();
             System.out.println("Audiveris process exited with code: " + exitCode);
+
+            if (exitCode != 0) {
+                return null;
+            }
         } catch (Exception e) {
+            System.out.println("Error running Audiveris: " + e.getMessage());
             return null;
         }
 
         String mxlPath = workingDir + "/Out" + path.substring(path.lastIndexOf('\\'), path.lastIndexOf('.')) + ".mxl";
-        
+        System.out.println("MXL Path: " + mxlPath);
+
         // Checking if file got converted
         if (!new File(mxlPath).exists()) {
+            System.out.println("MXL file not found.");
             return null;
         }
 
         // Convert .mxl to .mid
         String midiPath = convertMxlToMidi(mxlPath);
+        System.out.println("MIDI Path: " + midiPath);
 
-        // Return the .mid path
-        if (midiPath != null && new File(midiPath).exists()) {
-            return midiPath;
+        // Checking if .mid file got converted
+        if (!new File(midiPath).exists()) {
+            System.out.println("MIDI file not found.");
+            return null;
         }
 
-        return null;
+        // Return the .mid path
+        return midiPath;
     }
 
     private String convertMxlToMidi(String mxlPath) {
-        String pythonScriptPath = System.getProperty("user.dir") + "/java/PFE008/backend/MxlToMidi.py";
+        String pythonScriptPath = System.getProperty("user.dir") + "/src/main/MxlToMidi.py";
         String command = "python " + pythonScriptPath + " " + mxlPath;
+
+        System.out.println("Python command: " + command);
 
         try {
             ProcessBuilder processBuilder = new ProcessBuilder("cmd.exe", "/c", command);

@@ -28,7 +28,7 @@ const useMaestroClient = (): UseMaestroClientResult => {
       const blob = await response.blob();
 
       var fileDownload = require('js-file-download');
-      fileDownload(blob, `${formData.get("midiFileName")?.toString()}.mxl` ?? "myFile.mxl");
+      fileDownload(blob, `${formData.get("midiFileName")?.toString()}.mid` ?? "myFile.mid");
 
     } catch (err) {
       setError((err as Error).message);
