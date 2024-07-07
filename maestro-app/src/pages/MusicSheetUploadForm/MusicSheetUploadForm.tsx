@@ -6,6 +6,7 @@ import {
   Divider,
   FormControlLabel,
   FormLabel,
+  Grid,
   TextField,
   Typography,
 } from "@mui/material";
@@ -37,12 +38,15 @@ const MusicSheetUploadForm: React.FC = () => {
     defaultValues: {
       midiFileName: "",
       tempo: null,
-      ignoreFirstPage: false,
+      shouldParsePageRange: false,
       file: null,
+      pageRangeStart: null,
+      pageRangeEnd: null,
     },
   });
 
   const file = watch("file");
+  const shouldParsePageRange = watch("shouldParsePageRange");
 
   const canResetForm = (!isDirty && !file) || loading;
 
@@ -58,9 +62,12 @@ const MusicSheetUploadForm: React.FC = () => {
   const onSubmit = async (data: any) => {
     const formData = new FormData();
     formData.append("midiFileName", data.midiFileName);
-    formData.append("ignoreFirstPage", data.ignoreFirstPage.toString());
-    if (data.file) {
-      formData.append("file", data.file);
+    formData.append("file", data.file);
+    formData.append("tempo", data.tempo);
+    formData.append("shouldParsePageRange", data.shouldParsePageRange);
+    if (data.shouldParsePageRange) {
+      formData.append("pageRangeStart", data.pageRangeStart);
+      formData.append("pageRangeEnd", data.pageRangeEnd);
     }
 
     await convert(formData);
@@ -137,15 +144,63 @@ const MusicSheetUploadForm: React.FC = () => {
         <FormControlLabel
           control={
             <Controller
-              name="ignoreFirstPage"
+              name="shouldParsePageRange"
               control={control}
               render={({ field }) => (
                 <Checkbox {...field} checked={field.value} />
               )}
             />
           }
-          label={t("IgnoreLabel")}
+          label={t("ParsePageLabel")}
         />
+        {shouldParsePageRange && (
+          <Box width="100%" paddingY="1em">
+            <Grid container spacing={1} alignItems="center">
+              <Grid item xs={3}>
+                <Controller
+                  name="pageRangeStart"
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      type="number"
+                      id="outlined-required"
+                      size="small"
+                      label={t("StartPageLabel")}
+                      error={!!errors.pageRangeStart}
+                      helperText={
+                        errors.pageRangeStart
+                          ? t(`${errors.pageRangeStart.message}`)
+                          : ""
+                      }
+                    />
+                  )}
+                />
+              </Grid>
+              <Grid item xs={3}>
+                <Controller
+                  name="pageRangeEnd"
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      type="number"
+                      id="outlined-required"
+                      size="small"
+                      label={t("EndPageLabel")}
+                      error={!!errors.pageRangeEnd}
+                      helperText={
+                        errors.pageRangeEnd
+                          ? t(`${errors.pageRangeEnd.message}`)
+                          : ""
+                      }
+                    />
+                  )}
+                />
+              </Grid>
+            </Grid>
+          </Box>
+        )}
         <Divider sx={{ my: 2 }} />
         <Box display="flex" justifyContent="flex-end" width="100%">
           <MusicSheetUploadFormFooter

@@ -1,5 +1,7 @@
 import * as yup from 'yup';
 
+const MIN_PAGE_START = 1
+
 export const MIN_TEMPO = 40;
 export const MAX_TEMPO = 240;
 
@@ -12,13 +14,25 @@ export const formInputSchema = yup.object().shape({
     .transform((value) => (isNaN(value) ? undefined : value))
     .integer()
     .optional(),
-  ignoreFirstPage: yup.boolean(),
+  shouldParsePageRange: yup.boolean(),
   file: yup.mixed(),
+  pageRangeStart: yup.number()
+  .min(MIN_PAGE_START, "Validation.PageRange")
+  .nullable()
+  .transform((value) => (isNaN(value) ? undefined : value))
+  .integer()
+  .optional(),
+  pageRangeEnd: yup.number()
+  .min(MIN_PAGE_START, "Validation.PageRange")
+  .nullable()
+  .transform((value) => (isNaN(value) ? undefined : value))
+  .integer()
+  .optional(),
 });
 
 export type FormInput = {
   midiFileName: string;
   tempo: number | null;
-  ignoreFirstPage: boolean;
+  shouldParsePageRange: boolean;
   file: File | null;
 };
