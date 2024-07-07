@@ -110,6 +110,7 @@ const MusicSheetUploadForm: React.FC = () => {
             />
           )}
         />
+        <br />
         <FormLabel>{t("TempoLabel")}</FormLabel>
         <Controller
           name="tempo"
@@ -132,6 +133,7 @@ const MusicSheetUploadForm: React.FC = () => {
             />
           )}
         />
+        <br />
         <FormControlLabel
           control={
             <Controller

@@ -9,7 +9,9 @@ export const formInputSchema = yup.object().shape({
     .nullable()
     .min(MIN_TEMPO, "Validation.TempoMin")
     .max(MAX_TEMPO, "Validation.TempoMax")
-    .integer(),
+    .transform((value) => (isNaN(value) ? undefined : value))
+    .integer()
+    .optional(),
   ignoreFirstPage: yup.boolean(),
   file: yup.mixed(),
 });
