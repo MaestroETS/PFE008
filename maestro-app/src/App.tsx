@@ -1,4 +1,4 @@
-import MusicSheetUploadForm from "./pages/MusicSheetUploadForm";
+import MusicSheetUploadForm from "./pages/MusicSheetUploadForm/MusicSheetUploadForm";
 
 function App() {
   return (
