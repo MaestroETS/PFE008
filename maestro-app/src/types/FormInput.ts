@@ -1,13 +1,14 @@
 import * as yup from 'yup';
-import i18n from '../i18n/i18n';
+
+export const MIN_TEMPO = 40;
+export const MAX_TEMPO = 240;
 
 export const formInputSchema = yup.object().shape({
-  midiFileName: yup.string().required(i18n.t('midiFileNameRequired')),
+  midiFileName: yup.string().required("Validation.MidiFileNameRequired"),
   tempo: yup.number()
     .nullable()
-    .required(i18n.t('tempoRequired'))
-    .min(40, i18n.t('tempoMin'))
-    .max(240, i18n.t('tempoMax'))
+    .min(MIN_TEMPO, "Validation.TempoMin")
+    .max(MAX_TEMPO, "Validation.TempoMax")
     .integer(),
   ignoreFirstPage: yup.boolean(),
   file: yup.mixed(),
@@ -15,7 +16,7 @@ export const formInputSchema = yup.object().shape({
 
 export type FormInput = {
   midiFileName: string;
-  tempo: number | null ;
+  tempo: number | null;
   ignoreFirstPage: boolean;
   file: File | null;
 };

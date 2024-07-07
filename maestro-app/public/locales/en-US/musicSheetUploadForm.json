@@ -4,7 +4,13 @@
   "OptionsTitle": "Options",
   "OptionsSubTitle": "Customize how your music sheet is interpreted and your MIDI symphony is orchestrated.",
   "MidiLabel": "MIDI file name",
+  "TempoLabel": "Partition tempo (BPM)",
   "IgnoreLabel": "Ignore first page of document",
   "ConvertNow": "Convert Now!",
-  "Reset": "Reset"
+  "Reset": "Reset",
+  "Validation": {
+    "MidiFileNameRequired": "MIDI file name is required.",
+    "TempoMin": "Minimum tempo is {{minTempo}} BPM",
+    "TempoMax": "Maximum tempo is {{maxTempo}} BPM."
+  }
 }

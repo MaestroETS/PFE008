@@ -11,7 +11,7 @@ import {
 } from "@mui/material";
 import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { formInputSchema } from "../../types/FormInput";
+import { MAX_TEMPO, MIN_TEMPO, formInputSchema } from "../../types/FormInput";
 import MusicSheetUploader from "../../components/musicSheetUploader/MusicSheetUploader";
 import { useTranslation } from "react-i18next";
 import LanguageSwitcher from "../../components/languageSwitcher/LanguageSwitcher";
@@ -36,7 +36,7 @@ const MusicSheetUploadForm: React.FC = () => {
     resolver: yupResolver(formInputSchema),
     defaultValues: {
       midiFileName: "",
-      tempo: 0,
+      tempo: null,
       ignoreFirstPage: false,
       file: null,
     },
@@ -101,12 +101,11 @@ const MusicSheetUploadForm: React.FC = () => {
           render={({ field }) => (
             <TextField
               {...field}
-              required
               id="outlined-required"
               size="small"
               error={!!errors.midiFileName}
               helperText={
-                errors.midiFileName ? errors.midiFileName.message : ""
+                errors.midiFileName ? t(`${errors.midiFileName.message}`) : ""
               }
             />
           )}
@@ -119,11 +118,17 @@ const MusicSheetUploadForm: React.FC = () => {
             <TextField
               {...field}
               type="number"
-              required
               id="outlined-required"
               size="small"
               error={!!errors.tempo}
-              helperText={errors.tempo ? errors.tempo.message : ""}
+              helperText={
+                errors.tempo
+                  ? t(`${errors.tempo.message}`, {
+                      minTempo: MIN_TEMPO,
+                      maxTempo: MAX_TEMPO,
+                    })
+                  : ""
+              }
             />
           )}
         />
