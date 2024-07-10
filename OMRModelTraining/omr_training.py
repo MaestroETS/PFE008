@@ -21,7 +21,7 @@ def load_homus_dataset(dataset_path):
                     image = plt.imread(img_path)
                     if image.ndim == 3:  # Convert RGB to grayscale if needed
                         image = image[:, :, 0]
-                    image = cv2.resize(image, (200, 200)) / 255.0  # Resize image to 64x64 and normalize
+                    image = cv2.resize(image, (128, 128)) / 255.0  # Resize image to 64x64 and normalize
                     images.append(image)
                     labels.append(class_labels[class_dir])
     images = np.array(images)
@@ -54,7 +54,7 @@ datagen = ImageDataGenerator(
     zoom_range=0.3,
     width_shift_range=0.3,
     height_shift_range=0.3,
-    horizontal_flip=True
+    #horizontal_flip=True
 )
 
 # Define callbacks with checkpoint saving and early stopping
@@ -62,6 +62,11 @@ model_checkpoint = ModelCheckpoint('best_omr_model.keras', save_best_only=True, 
 early_stopping = EarlyStopping(monitor='val_loss', patience=15, restore_best_weights=True)
 
 # Load or initialize model
+
+#------------------------------------#
+# esseyer model preentrainer efficientnet
+#------------------------------------#
+
 model_path = 'omr_model.keras'
 if os.path.exists(model_path):
     model = tf.keras.models.load_model(model_path)
@@ -69,7 +74,7 @@ if os.path.exists(model_path):
 else:
     # Define the CNN model with increased complexity and batch normalization
     model = tf.keras.models.Sequential([
-        tf.keras.layers.Input(shape=(200, 200, 1)),  # Correctly define input shape
+        tf.keras.layers.Input(shape=(128, 128, 1)),  # Correctly define input shape
         tf.keras.layers.Conv2D(32, (3, 3), activation='relu'),
         tf.keras.layers.BatchNormalization(),
         tf.keras.layers.MaxPooling2D((2, 2)),
@@ -92,7 +97,7 @@ else:
 model.summary()
 
 # Compile the model with a higher learning rate
-model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.000015),
+model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.00001),
               loss='categorical_crossentropy',
               metrics=['accuracy'])
 
