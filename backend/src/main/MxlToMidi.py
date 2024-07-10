@@ -1,6 +1,7 @@
 import sys
 import os
-from music21 import converter, midi, dynamics, volume
+from music21 import converter, midi, dynamics, volume, tempo, stream
+import xml.etree.ElementTree as xmlTree
 
 def apply_dynamics_to_notes(score):
     for part in score.parts:
@@ -42,6 +43,8 @@ def print_part_details(score):
 def mxl_to_midi(mxl_file, midi_file):
     score = converter.parse(mxl_file) #parse the MXL file using music21
 
+    score = confirmMxlTempo(os.path.splitext(mxl_file)[0], score)
+
     # print("Initial Part Details:")
     # print_part_details(score)
 
@@ -55,6 +58,53 @@ def mxl_to_midi(mxl_file, midi_file):
     mf.open(midi_file, 'wb')
     mf.write()
     mf.close()
+
+def GetTempoFromXML(xml_file):
+    tempoSaved = {}
+
+    # Load and parse the XML file
+    tree = xmlTree.parse(xml_file)
+    root = tree.getroot()
+
+    # Iterate through each 'measure' element
+    for measure in root.findall('.//measure'):
+        measureNumber = measure.get('number')
+
+        # Iterate through each 'direction' element in the measure
+        for direction in measure.findall('direction'):
+            wordsElement = direction.find('.//words')
+            if wordsElement is not None:
+                wordsText = wordsElement.text
+                if wordsText and ('J =' in wordsText or 'J. =' in wordsText):
+                    # Extract the value after 'J =' or 'J. ='
+                    tempoValue = wordsText.split('=')[1].strip()
+                    print(f"Measure Number: {measureNumber}, J Value: {tempoValue}")
+                    tempoSaved[measureNumber] = tempoValue
+
+    return tempoSaved
+
+def confirmMxlTempo(base_path, score):
+    tempoSaved = GetTempoFromXML(base_path + ".xml")
+
+    for measureNumber, tempoValue in tempoSaved.items():
+        measures = score.parts[0].getElementsByClass(stream.Measure)
+
+        for measure in measures:
+            if measure.number == measureNumber:
+                directions = measure.getElementsByClass(tempo.MetronomeMark)
+                if directions:
+                    for direction in directions:
+                        if direction.numberQuarterNotesPerMinute != tempoValue:
+                            direction.numberQuarterNotesPerMinute = tempoValue
+                            print(f"Updated measure {measureNumber} tempo to {tempoValue} BPM")
+                else:
+                    # If no tempo mark exists, add a new one
+                    new_tempo = tempo.MetronomeMark(numberQuarterNotesPerMinute=tempoValue)
+                    measure.insert(0, new_tempo)
+                    print(f"Added tempo {tempoValue} BPM to measure {measureNumber}")
+
+    score.write('musicxml', fp='updated_' + base_path + ".mxl")
+    return score
 
 def main():
     if len(sys.argv) != 2:
