@@ -12,7 +12,7 @@ import java.io.InputStreamReader;
  * It will then convert the file to a .mxl file and
  * return its path.
  * 
- * @author Charlie Poncsak, modified by Philippe Langevin
+ * @author Charlie Poncsak, modified by Philippe Langevin, Xavier Jeanson
  * @version 2024.06.17
  */
 public class AudiverisController {
