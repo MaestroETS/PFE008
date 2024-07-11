@@ -1,14 +1,32 @@
 package PFE008.backend;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+
+import javax.sound.midi.InvalidMidiDataException;
+import javax.sound.midi.MetaMessage;
+import javax.sound.midi.MidiEvent;
+import javax.sound.midi.MidiMessage;
+import javax.sound.midi.MidiSystem;
+import javax.sound.midi.Sequence;
+import javax.sound.midi.ShortMessage;
+import javax.sound.midi.Track;
 
 import org.junit.jupiter.api.AfterAll;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 
 
 /**
@@ -58,18 +76,54 @@ class AudiverisController_tests {
         assertNull(midiPath);
     }
 
-    @Test
+   @Test
     void testConvertFileOutput() throws Exception {
-        String path = TESTPATH + OUTPATH + File.separator + "AudiverisController_java_tests.mxl";
-        File file = new File(path);
+        String path = OUTPATH + File.separator + "AudiverisController_java_tests.mid";
+        ArrayList<Integer> notesToTests = new ArrayList<>();
+        int[] goodNotes = {72, 71, 69, 67, 67, 69, 71, 72, 72, 71, 69, 67, 67, 69, 71, 72, 55, 53, 52, 50, 50, 52, 53, 55, 55, 53, 52, 50, 50, 52, 53, 55};
 
-        // In progress
-            
+        try {
+            Sequence sequence = MidiSystem.getSequence(new File(path));
+            Track[] tracks = sequence.getTracks();
 
-        assertTrue(true);
+            for (Track track : tracks) {
+                for (int i = 0; i < track.size(); i++) {
+                    MidiEvent event = track.get(i);
+                    MidiMessage message = event.getMessage();
+
+                        if (message instanceof ShortMessage) {
+                            ShortMessage sm = (ShortMessage) message;
+                            if (sm.getCommand() == ShortMessage.NOTE_ON) {
+                                int note = sm.getData1();
+                                notesToTests.add(note);
+                                
+                                long durationTicks = 0;
+                                for (int j = i + 1; j < track.size(); j++) {
+                                    MidiEvent offEvent = track.get(j);
+                                    MidiMessage offMessage = offEvent.getMessage();
+                                    if (offMessage instanceof ShortMessage offSM) {
+                                        if (offSM.getCommand() == ShortMessage.NOTE_OFF && offSM.getData1() == note) {
+                                            durationTicks = offEvent.getTick() - event.getTick();
+                                            break;
+                                        }
+                                    }
+                                }
+    
+                                double durationQuarterNotes = (double) durationTicks / sequence.getResolution();
+                                assertTrue(Math.abs(durationQuarterNotes - 1.0) < 0.01);
+                            }
+                        }
+                }
+            }
+        } catch (IOException | ArrayIndexOutOfBoundsException | InvalidMidiDataException e) {
+        }
+
+        for(int i =0; i <  goodNotes.length; i++) {
+            assertEquals(notesToTests.get(i), goodNotes[i]);
+        }
     }
 
-    //@AfterAll
+    @AfterAll
     static void deleteFiles() {
 
         File directory = new File(OUTPATH);
@@ -94,6 +148,4 @@ class AudiverisController_tests {
         }
 
     }
-
-
 }
