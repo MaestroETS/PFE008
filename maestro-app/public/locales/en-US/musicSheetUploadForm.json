@@ -4,7 +4,16 @@
   "OptionsTitle": "Options",
   "OptionsSubTitle": "Customize how your music sheet is interpreted and your MIDI symphony is orchestrated.",
   "MidiLabel": "MIDI file name",
-  "IgnoreLabel": "Ignore first page of document",
+  "TempoLabel": "Partition tempo (BPM)",
+  "ParsePageLabel": "Choose document pages to convert.",
+  "StartPageLabel": "First page",
+  "EndPageLabel": "Last page",
   "ConvertNow": "Convert Now!",
-  "Reset": "Reset"
+  "Reset": "Reset",
+  "Validation": {
+    "PageRange": "Range is invalid.",
+    "MidiFileNameRequired": "MIDI file name is required.",
+    "TempoMin": "Minimum tempo is {{minTempo}} BPM",
+    "TempoMax": "Maximum tempo is {{maxTempo}} BPM."
+  }
 }

@@ -56,7 +56,12 @@ const MusicSheetUploader: React.FC<MusicSheetUploaderProps> = ({
   });
 
   return (
-    <FileInputBox {...getRootProps()}>
+    <FileInputBox
+      {...getRootProps()}
+      onClick={(event) => {
+        event.stopPropagation();
+      }}
+    >
       {!file ? (
         <>
           <CenteredBox>
