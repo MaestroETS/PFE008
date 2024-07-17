@@ -74,16 +74,34 @@ def GetTempoFromXML(xml_file):
             wordsElement = direction.find('.//words')
             if wordsElement is not None:
                 wordsText = wordsElement.text
-                if wordsText and ('J =' in wordsText or 'J. =' in wordsText):
-                    # Extract the value after 'J =' or 'J. ='
-                    try:
-                        tempoValue = int(wordsText.split('=')[1].strip())
-                        print(f"Measure Number: {measureNumber}, J Value: {tempoValue}")
-                        tempoSaved.append((int(measureNumber), tempoValue))
-                    except Exception as e:
-                        print(f"Error parsing J value in measure {measureNumber}: {e}")
+                if wordsText:
+                    # Check if 'J =' or 'J. =' is in the wordsText
+                    if 'J =' in wordsText or 'J=' in wordsText or 'J. =' in wordsText or 'J.=' in wordsText:
+                        try:
+                            tempoValue = int(wordsText.split('=')[1].strip())
+                            print(f"Measure Number: {measureNumber}, J Value: {tempoValue}")
+                            tempoSaved.append((int(measureNumber), tempoValue))
+                        except Exception as e:
+                            print(f"Error parsing J value in measure {measureNumber}: {e}")
+                    else:
+                        # Check for tempo word
+                        tempoWord = wordsText.split('(')[0].strip() if '(' in wordsText else wordsText.strip()
+                        tempoValue = parseTempoWord(tempoWord)
+                        if tempoValue:
+                            print(f"Measure Number: {measureNumber}, Word Value: {tempoValue}")
+                            tempoSaved.append((int(measureNumber), tempoValue))
+
 
     return tempoSaved
+
+def parseTempoWord(word):
+    tempoDict = {
+        'slow': 60,
+        'moderato': 90,
+        'allegro': 120,
+        'presto': 160,
+    }
+    return tempoDict.get(word.lower(), None)
 
 def confirmMxlTempo(base_path, score):
     tempoSaved = GetTempoFromXML(base_path + ".xml")
@@ -116,11 +134,17 @@ def confirmMxlTempo(base_path, score):
                 print(f"An error occurred in part {part.id}, measure {measure_number}: {e}")
 
     print("end of insert")
-    list_tempos(score)
+    listTempos(score)
     return score
 
 def clearInitialTempos(score):
     for part in score.parts:
+        # Remove initial tempos in measure 0
+        measure_0 = part.measure(0)
+        if measure_0 is not None:
+            for element in measure_0.getElementsByClass(tempo.MetronomeMark):
+                measure_0.remove(element)
+
         # Remove initial tempos in measure 1
         measure_1 = part.measure(1)
         if measure_1 is not None:
