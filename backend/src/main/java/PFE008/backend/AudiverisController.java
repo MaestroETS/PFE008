@@ -29,7 +29,7 @@ public class AudiverisController {
 
         String audiverisPath = workingDir + "/audiveris/dist/bin/Audiveris.bat";
         String inputFile = '\"' + path + "\"";
-        String outputDir = workingDir + "/Out";
+        String outputDir = workingDir + "\\Out";
         String[] options = new String[]{"org.audiveris.omr.sheet.BookManager.useCompression=false"};
         String commandMXL = audiverisPath + " -batch -export -output " + outputDir + " -- " + inputFile;
 
@@ -62,7 +62,7 @@ public class AudiverisController {
 
 
             // export in xml formats --------------------------------
-            String omrPath = workingDir + "/Out" + path.substring(path.lastIndexOf('\\'), path.lastIndexOf('.')) + ".omr";
+            String omrPath = workingDir + "\\Out" + path.substring(path.lastIndexOf('\\'), path.lastIndexOf('.')) + ".omr";
             String commandXML = audiverisPath + " -batch -export -option " + options[0] +" -output " + outputDir + " -- " + omrPath;
             System.out.println("Audiveris commandXML: " + commandXML);
 
@@ -89,7 +89,7 @@ public class AudiverisController {
             return null;
         }
 
-        String mxlPath = workingDir + "/Out" + path.substring(path.lastIndexOf('\\'), path.lastIndexOf('.')) + ".mxl";
+        String mxlPath = workingDir + "\\Out" + path.substring(path.lastIndexOf('\\'), path.lastIndexOf('.')) + ".mxl";
         System.out.println("MXL Path: " + mxlPath);
 
         // Checking if file got converted

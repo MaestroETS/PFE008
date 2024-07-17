@@ -41,26 +41,25 @@ def print_part_details(score):
                     print(f"Chord Note: {note.pitch}, Duration: {note.quarterLength}, Velocity: {note.volume.velocity}")
 
 def mxl_to_midi(mxl_file, midi_file):
-    score = converter.parse(mxl_file) #parse the MXL file using music21
+    score = converter.parse(mxl_file)  # parse the MXL file using music21
+
+    # Check the type of score
+    print(f"Type of score after parsing: {type(score)}")
 
     score = confirmMxlTempo(os.path.splitext(mxl_file)[0], score)
-
-    # print("Initial Part Details:")
-    # print_part_details(score)
+    print("Tempo confirmed")
 
     apply_dynamics_to_notes(score)
 
-    # print("Note Details after Applying Dynamics:")
-    # print_note_details(score)
-
-    #create a new MIDI file object from the score
+    # Create a new MIDI file object from the score
     mf = midi.translate.music21ObjectToMidiFile(score)
     mf.open(midi_file, 'wb')
     mf.write()
     mf.close()
 
 def GetTempoFromXML(xml_file):
-    tempoSaved = {}
+    print("Getting tempo...")
+    tempoSaved = []
 
     # Load and parse the XML file
     tree = xmlTree.parse(xml_file)
@@ -77,34 +76,70 @@ def GetTempoFromXML(xml_file):
                 wordsText = wordsElement.text
                 if wordsText and ('J =' in wordsText or 'J. =' in wordsText):
                     # Extract the value after 'J =' or 'J. ='
-                    tempoValue = wordsText.split('=')[1].strip()
-                    print(f"Measure Number: {measureNumber}, J Value: {tempoValue}")
-                    tempoSaved[measureNumber] = tempoValue
+                    try:
+                        tempoValue = int(wordsText.split('=')[1].strip())
+                        print(f"Measure Number: {measureNumber}, J Value: {tempoValue}")
+                        tempoSaved.append((int(measureNumber), tempoValue))
+                    except Exception as e:
+                        print(f"Error parsing J value in measure {measureNumber}: {e}")
 
     return tempoSaved
 
 def confirmMxlTempo(base_path, score):
     tempoSaved = GetTempoFromXML(base_path + ".xml")
 
-    for measureNumber, tempoValue in tempoSaved.items():
-        measures = score.parts[0].getElementsByClass(stream.Measure)
+    # Clear initial tempos in measure 1
+    clearInitialTempos(score)
 
-        for measure in measures:
-            if measure.number == measureNumber:
-                directions = measure.getElementsByClass(tempo.MetronomeMark)
-                if directions:
-                    for direction in directions:
-                        if direction.numberQuarterNotesPerMinute != tempoValue:
-                            direction.numberQuarterNotesPerMinute = tempoValue
-                            print(f"Updated measure {measureNumber} tempo to {tempoValue} BPM")
+    # Iterate through the list of tuples
+    for measure_number, tempo_value in tempoSaved:
+        # Create a MetronomeMark object with the specified tempo
+        print(f"Creating MetronomeMark for measure {measure_number} with tempo {tempo_value}")
+        metronome_mark = tempo.MetronomeMark(number=tempo_value)
+
+        # Iterate through all parts
+        for part in score.parts:
+            print(f"Processing part {part.id} for measure {measure_number}")
+            try:
+                # Get the specified measure
+                measure = part.measure(measure_number)
+                print(f"Got measure {measure_number} in part {part.id}: {measure}")
+
+                if measure is not None:
+                    # Insert the MetronomeMark at the beginning of the measure
+                    print(f"Inserting MetronomeMark at measure {measure_number} in part {part.id}")
+                    measure.insert(0, metronome_mark)
+                    print(f"Inserted MetronomeMark at measure {measure_number} in part {part.id}")
                 else:
-                    # If no tempo mark exists, add a new one
-                    new_tempo = tempo.MetronomeMark(numberQuarterNotesPerMinute=tempoValue)
-                    measure.insert(0, new_tempo)
-                    print(f"Added tempo {tempoValue} BPM to measure {measureNumber}")
+                    print(f"Measure {measure_number} not found in part {part.id}")
+            except Exception as e:
+                print(f"An error occurred in part {part.id}, measure {measure_number}: {e}")
 
-    score.write('musicxml', fp='updated_' + base_path + ".mxl")
+    print("end of insert")
+    list_tempos(score)
     return score
+
+def clearInitialTempos(score):
+    for part in score.parts:
+        # Remove initial tempos in measure 1
+        measure_1 = part.measure(1)
+        if measure_1 is not None:
+            for element in measure_1.getElementsByClass(tempo.MetronomeMark):
+                measure_1.remove(element)
+
+def listTempos(score):
+    tempoList = []
+    for part in score.parts:
+        print(f"Part: {part.id}")
+        for measure in part.getElementsByClass('Measure'):
+            tempos = measure.getElementsByClass(tempo.MetronomeMark)
+            if tempos:
+                for t in tempos:
+                    tempoList.append((part.id, measure.number, t.number))
+                    print(f"Measure {measure.number}: Tempo {t.number}")
+            else:
+                print(f"Measure {measure.number}: No tempo marking")
+    return tempoList
 
 def main():
     if len(sys.argv) != 2:
