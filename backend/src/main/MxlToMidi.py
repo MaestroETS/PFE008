@@ -86,7 +86,7 @@ def GetTempoFromXML(xml_file):
                     else:
                         # Check for tempo word
                         tempoWord = wordsText.split('(')[0].strip() if '(' in wordsText else wordsText.strip()
-                        tempoValue = parseTempoWord(tempoWord)
+                        tempoValue = convert_tempo_term_to_bpm(tempoWord)
                         if tempoValue:
                             print(f"Measure Number: {measureNumber}, Word Value: {tempoValue}")
                             tempoSaved.append((int(measureNumber), tempoValue))
@@ -94,14 +94,40 @@ def GetTempoFromXML(xml_file):
 
     return tempoSaved
 
-def parseTempoWord(word):
-    tempoDict = {
-        'slow': 60,
-        'moderato': 90,
-        'allegro': 120,
-        'presto': 160,
+def convert_tempo_term_to_bpm(term):
+
+    tempo_terms_to_bpm = {
+        24: ["larghissimo", "very, very slow", "very very slow", "extrêmement lent", "sehr breit"],
+        35: ["grave", "very slow", "grave", "schwer", "solenne"],
+        53: ["largo", "broadly", "large", "largement", "breit"],
+        54: ["lentissimo", "slow", "très lent", "sehr langsam", "adagissimo"],
+        59: ["adagissimo", "rather slowly", "lentement modéré", "sehr ruhig"],
+        60: ["lento", "slowly", "lent", "langsam"],
+        63: ["larghetto", "rather broadly", "assez large", "etwas breit"],
+        71: ["adagio", "slow and stately", "à l'aise", "gemächlich"],
+        74: ["adagetto", "slower than andante", "assez vite", "ziemlich ruhig"],
+        80: ["tranquillo", "tranquil", "tranquille", "ruhig", "adagio"],
+        94: ["andante", "at a walking pace", "allant", "gehend"],
+        98: ["andantino", "slightly faster than andante", "un peu allant", "etwas gehend"],
+        84: ["marcia moderato", "moderately", "in the manner of a march", "modérément", "mäßig"],
+        102: ["andante moderato", "between andante and moderato", "modérément", "mäßig"],
+        114: ["moderato", "moderately", "modéré", "mäßig"],
+        120: ["allegretto", "moderately fast", "assez vite", "ein wenig schnell"],
+        120: ["allegro moderato", "close to but not quite allegro", "allègrement", "vite", "fröhlich", "lustig"],
+        140: ["allegro", "fast, quickly, and bright", "vif", "schnell", "allegro moderato"],
+        172: ["vivace", "lively and fast", "vif", "lebhaft"],
+        176: ["vivacissimo", "very fast and lively", "extrêmement vif", "sehr rasch"],
+        168: ["allegrissimo", "very fast", "très vite", "geschwind"],
+        188: ["presto", "very, very fast","very very fast", "très rapide", "sehr schnell"],
+        200: ["prestissimo", "even faster than presto", "extrêmement rapide", "äußerst schnell"],
     }
-    return tempoDict.get(word.lower(), None)
+
+    term = term.lower()
+    for bpm, terms in tempo_terms_to_bpm.items():
+        if term in terms:
+            return bpm
+    #print(f"Warning: Tempo term '{term}' not found in the conversion table. Keeping current tempo: {current_bpm} BPM.")
+    #return current_bpm
 
 def confirmMxlTempo(base_path, score):
     tempoSaved = GetTempoFromXML(base_path + ".xml")
