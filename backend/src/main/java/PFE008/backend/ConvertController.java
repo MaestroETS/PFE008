@@ -38,7 +38,9 @@ public class ConvertController {
 		
 		// Save input file
 		String fileName = StringUtils.cleanPath(multipartFile.getOriginalFilename());
+        System.out.println("---------------------------------------" + fileName);
         Path filePath = FileUtil.saveFile(fileName, multipartFile, "In");
+        System.out.println("---------------------------------------" + filePath.toString());
 		
 		// Convert music sheet to .mxl
 		AudiverisController audiveris = new AudiverisController();

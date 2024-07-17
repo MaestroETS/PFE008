@@ -1,17 +1,10 @@
 package PFE008.backend;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 import javax.sound.midi.InvalidMidiDataException;
-import javax.sound.midi.MetaMessage;
 import javax.sound.midi.MidiEvent;
 import javax.sound.midi.MidiMessage;
 import javax.sound.midi.MidiSystem;
@@ -20,7 +13,6 @@ import javax.sound.midi.ShortMessage;
 import javax.sound.midi.Track;
 
 import org.junit.jupiter.api.AfterAll;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -124,7 +116,7 @@ class AudiverisController_tests {
     }
 
     @AfterAll
-    static void deleteFiles() {
+    static void cleanup() {
 
         File directory = new File(OUTPATH);
 
