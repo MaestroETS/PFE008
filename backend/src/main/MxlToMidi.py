@@ -3,6 +3,60 @@ import os
 from music21 import converter, midi, dynamics, volume, tempo, stream
 import xml.etree.ElementTree as xmlTree
 
+tempo_terms_to_bpm = {
+    24: ["larghissimo", "very, very slow", "very very slow", "extrêmement lent", "sehr breit"],
+    35: ["grave", "very slow", "grave", "schwer", "solenne"],
+    53: ["largo", "broadly", "large", "largement", "breit"],
+    54: ["lentissimo", "slow", "très lent", "sehr langsam", "adagissimo"],
+    59: ["adagissimo", "rather slowly", "lentement modéré", "sehr ruhig"],
+    60: ["lento", "slowly", "lent", "langsam"],
+    63: ["larghetto", "rather broadly", "assez large", "etwas breit"],
+    71: ["adagio", "slow and stately", "à l'aise", "gemächlich"],
+    74: ["adagetto", "slower than andante", "assez vite", "ziemlich ruhig"],
+    80: ["tranquillo", "tranquil", "tranquille", "ruhig", "adagio"],
+    94: ["andante", "at a walking pace", "allant", "gehend"],
+    98: ["andantino", "slightly faster than andante", "un peu allant", "etwas gehend"],
+    84: ["marcia moderato", "moderately", "in the manner of a march", "modérément", "mäßig"],
+    102: ["andante moderato", "between andante and moderato", "modérément", "mäßig"],
+    114: ["moderato", "moderately", "modéré", "mäßig"],
+    120: ["allegretto", "moderately fast", "assez vite", "ein wenig schnell"],
+    120: ["allegro moderato", "close to but not quite allegro", "allègrement", "vite", "fröhlich", "lustig"],
+    140: ["allegro", "fast, quickly, and bright", "vif", "schnell", "allegro moderato"],
+    172: ["vivace", "lively and fast", "vif", "lebhaft"],
+    176: ["vivacissimo", "very fast and lively", "extrêmement vif", "sehr rasch"],
+    168: ["allegrissimo", "very fast", "très vite", "geschwind"],
+    188: ["presto", "very, very fast","very very fast", "très rapide", "sehr schnell"],
+    200: ["prestissimo", "even faster than presto", "extrêmement rapide", "äußerst schnell"],
+}
+
+def convert_tempo_term_to_bpm(term, current_bpm):
+    term = term.lower()
+    for bpm, terms in tempo_terms_to_bpm.items():
+        if term in terms:
+            return bpm
+    print(f"Warning: Tempo term '{term}' not found in the conversion table. Keeping current tempo: {current_bpm} BPM.")
+    return current_bpm
+
+def apply_tempo_to_score(score, tempo_changes):
+    for measure_num, bpm in tempo_changes.items():
+        for part in score.parts:
+            measure = part.measure(measure_num)
+            if measure is not None:
+                metronome_mark = tempo.MetronomeMark(numberQuarterNotesPerMinute=bpm)
+                measure.insert(0, metronome_mark)
+                print(f"Applied {bpm} BPM to measure {measure_num} in part {part.id}")
+
+def confirmMxlTempo(base_path, score):
+    tempoSaved = GetTempoFromXML(base_path + ".xml")
+
+    clearInitialTempos(score)
+
+    apply_tempo_to_score(score, {measure: tempo for measure, tempo in tempoSaved})
+
+    print("end of insert")
+    listTempos(score)
+    return score
+
 def apply_dynamics_to_notes(score):
     for part in score.parts:
         for element in part.flatten().notesAndRests:
@@ -41,9 +95,7 @@ def print_part_details(score):
                     print(f"Chord Note: {note.pitch}, Duration: {note.quarterLength}, Velocity: {note.volume.velocity}")
 
 def mxl_to_midi(mxl_file, midi_file):
-    score = converter.parse(mxl_file)  # parse the MXL file using music21
-
-    # Check the type of score
+    score = converter.parse(mxl_file)
     print(f"Type of score after parsing: {type(score)}")
 
     score = confirmMxlTempo(os.path.splitext(mxl_file)[0], score)
@@ -51,7 +103,6 @@ def mxl_to_midi(mxl_file, midi_file):
 
     apply_dynamics_to_notes(score)
 
-    # Create a new MIDI file object from the score
     mf = midi.translate.music21ObjectToMidiFile(score)
     mf.open(midi_file, 'wb')
     mf.write()
@@ -74,54 +125,34 @@ def GetTempoFromXML(xml_file):
             wordsElement = direction.find('.//words')
             if wordsElement is not None:
                 wordsText = wordsElement.text
-                if wordsText and ('J =' in wordsText or 'J. =' in wordsText):
-                    # Extract the value after 'J =' or 'J. ='
-                    try:
-                        tempoValue = int(wordsText.split('=')[1].strip())
-                        print(f"Measure Number: {measureNumber}, J Value: {tempoValue}")
-                        tempoSaved.append((int(measureNumber), tempoValue))
-                    except Exception as e:
-                        print(f"Error parsing J value in measure {measureNumber}: {e}")
+                print(f"Measure Number: {measureNumber}, Text: {wordsText}")
+                if wordsText:
+                    if any(j in wordsText for j in ['J =', 'J=', 'J. =', 'J.=']):
+                        # Extract the value after 'J =', 'J=', 'J. =', or 'J.='
+                        try:
+                            tempoValue = int(wordsText.split('=')[1].strip())
+                            print(f"Measure Number: {measureNumber}, J Value: {tempoValue}")
+                            if int(measureNumber) == 0:
+                                tempoSaved.append((1, tempoValue))
+                            else:
+                                tempoSaved.append((int(measureNumber), tempoValue))
+                        except Exception as e:
+                            print(f"Error parsing J value in measure {measureNumber}: {e}")
+                    else:
+                        # Check if the wordsText is a tempo term
+                        tempoValue = convert_tempo_term_to_bpm(wordsText, None)
+                        if tempoValue is not None:
+                            if int(measureNumber) == 0:
+                                tempoSaved.append((1, tempoValue))
+                            else:
+                                print(f"Measure Number: {measureNumber}, Tempo Term: {wordsText}, BPM: {tempoValue}")
+                                tempoSaved.append((int(measureNumber), tempoValue))
 
     return tempoSaved
 
-def confirmMxlTempo(base_path, score):
-    tempoSaved = GetTempoFromXML(base_path + ".xml")
-
-    # Clear initial tempos in measure 1
-    clearInitialTempos(score)
-
-    # Iterate through the list of tuples
-    for measure_number, tempo_value in tempoSaved:
-        # Create a MetronomeMark object with the specified tempo
-        print(f"Creating MetronomeMark for measure {measure_number} with tempo {tempo_value}")
-        metronome_mark = tempo.MetronomeMark(number=tempo_value)
-
-        # Iterate through all parts
-        for part in score.parts:
-            print(f"Processing part {part.id} for measure {measure_number}")
-            try:
-                # Get the specified measure
-                measure = part.measure(measure_number)
-                print(f"Got measure {measure_number} in part {part.id}: {measure}")
-
-                if measure is not None:
-                    # Insert the MetronomeMark at the beginning of the measure
-                    print(f"Inserting MetronomeMark at measure {measure_number} in part {part.id}")
-                    measure.insert(0, metronome_mark)
-                    print(f"Inserted MetronomeMark at measure {measure_number} in part {part.id}")
-                else:
-                    print(f"Measure {measure_number} not found in part {part.id}")
-            except Exception as e:
-                print(f"An error occurred in part {part.id}, measure {measure_number}: {e}")
-
-    print("end of insert")
-    list_tempos(score)
-    return score
 
 def clearInitialTempos(score):
     for part in score.parts:
-        # Remove initial tempos in measure 1
         measure_1 = part.measure(1)
         if measure_1 is not None:
             for element in measure_1.getElementsByClass(tempo.MetronomeMark):
