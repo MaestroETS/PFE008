@@ -3,6 +3,7 @@ package PFE008.backend;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Controller for Audiveris
@@ -33,10 +34,7 @@ public class AudiverisController {
         String[] options = new String[]{"org.audiveris.omr.sheet.BookManager.useCompression=false"};
         String commandMXL = audiverisPath + " -batch -export -output " + outputDir + " -- " + inputFile;
 
-
-
         System.out.println("Audiveris commandMXL: " + commandMXL);
-
 
         // Run the command
         try {
@@ -58,9 +56,6 @@ public class AudiverisController {
                 return null;
             }
 
-
-
-
             // export in xml formats --------------------------------
             String omrPath = workingDir + "\\Out" + path.substring(path.lastIndexOf('\\'), path.lastIndexOf('.')) + ".omr";
             String commandXML = audiverisPath + " -batch -export -option " + options[0] +" -output " + outputDir + " -- " + omrPath;
@@ -76,13 +71,12 @@ public class AudiverisController {
             while ((lineXML = readerXML.readLine()) != null) {
                 System.out.println(lineXML);
             }
-            int exitCodeXML = process.waitFor();
+            int exitCodeXML = processXML.waitFor();
 
             if (exitCodeXML != 0) {
                 return null;
             }
             //--------------------------------------------------------
-
 
         } catch (Exception e) {
             System.out.println("Error running Audiveris: " + e.getMessage());
@@ -107,6 +101,16 @@ public class AudiverisController {
             System.out.println("MIDI file not found.");
             return null;
         }
+
+        // Start a new thread for cleaning up the directories after a delay
+        new Thread(() -> {
+            try {
+                TimeUnit.SECONDS.sleep(3);
+                cleanupDirectories(workingDir + "\\In", workingDir + "\\Out");
+            } catch (InterruptedException e) {
+                System.out.println("Interrupted while waiting to clean up directories: " + e.getMessage());
+            }
+        }).start();
 
         // Return the .mid path
         return midiPath;
@@ -143,6 +147,25 @@ public class AudiverisController {
         } catch (Exception e) {
             System.out.println("Error converting .mxl to .mid: " + e.getMessage());
             return null;
+        }
+    }
+
+    private void cleanupDirectories(String inputDir, String outputDir) {
+        deleteFilesInDirectory(inputDir);
+        deleteFilesInDirectory(outputDir);
+    }
+
+    private void deleteFilesInDirectory(String directoryPath) {
+        File directory = new File(directoryPath);
+        if (directory.exists() && directory.isDirectory()) {
+            File[] files = directory.listFiles();
+            if (files != null) {
+                for (File file : files) {
+                    if (file.isFile()) {
+                        file.delete();
+                    }
+                }
+            }
         }
     }
 }

@@ -103,7 +103,7 @@ def convert_tempo_term_to_bpm(term):
         54: ["lentissimo", "slow", "très lent", "sehr langsam", "adagissimo"],
         59: ["adagissimo", "rather slowly", "lentement modéré", "sehr ruhig"],
         60: ["lento", "slowly", "lent", "langsam"],
-        63: ["larghetto", "rather broadly", "assez large", "etwas breit"],
+        63: ["larghetto", "rather broadly", "assez large", "etwas breit", "zart"],
         71: ["adagio", "slow and stately", "à l'aise", "gemächlich"],
         74: ["adagetto", "slower than andante", "assez vite", "ziemlich ruhig"],
         80: ["tranquillo", "tranquil", "tranquille", "ruhig", "adagio"],
