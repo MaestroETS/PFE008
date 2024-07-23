@@ -31,8 +31,8 @@ public class AudiverisController {
         String audiverisPath = workingDir + "/audiveris/dist/bin/Audiveris.bat";
         String inputFile = '\"' + path + "\"";
         String outputDir = workingDir + "\\Out";
-        String[] options = new String[]{"org.audiveris.omr.sheet.BookManager.useCompression=false"};
-        String commandMXL = audiverisPath + " -batch -export -output " + outputDir + " -- " + inputFile;
+        String[] options = new String[]{"org.audiveris.omr.sheet.BookManager.useCompression=false", "smallHeads=true", "smallBeams=true", "multiWholeHeadChords=true "};
+        String commandMXL = audiverisPath + " -batch -export -option " + options[1] + " -option " + options[2] + " -option " + options[3] + " -output " + outputDir + " -- " + inputFile;
 
         System.out.println("Audiveris commandMXL: " + commandMXL);
 
