@@ -2,4 +2,5 @@
 *.pdf
 
 # ignore audiveris files
-backend/audiveris/
+/backend/audiveris/*
+!/backend/audiveris/dist/
