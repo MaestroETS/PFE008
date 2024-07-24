@@ -3,7 +3,9 @@ package PFE008.backend;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
+import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 public class AudiverisController {
     private String tempos;
@@ -30,8 +32,9 @@ public class AudiverisController {
         String audiverisPath = workingDir + "/audiveris/dist/bin/Audiveris.bat";
         String inputFile = "\"" + path + "\"";
         String outputDir = workingDir + "\\Out";
-        String[] options = new String[]{"org.audiveris.omr.sheet.BookManager.useCompression=false"};
-        String commandMXL = audiverisPath + " -batch -export -output " + outputDir + " -- " + inputFile;
+        String XMLoption = "org.audiveris.omr.sheet.BookManager.useCompression=false";
+        String[] options = new String[]{"org.audiveris.omr.sheet.BookManager.ProcessingSwitches.chordNames=true", "org.audiveris.omr.sheet.BookManager.ProcessingSwitches.lyrics=true", "org.audiveris.omr.sheet.BookManager.ProcessingSwitches.lyricsAboveStaff=false"};
+        String commandMXL = audiverisPath + " -batch -export"+ ((options.length > 0) ? " -option " + stringifyOptions(options) : "") +" -output " + outputDir + " -- " + inputFile;
 
         System.out.println("Audiveris commandMXL: " + commandMXL);
 
@@ -56,7 +59,9 @@ public class AudiverisController {
 
             // Export in XML formats
             String omrPath = workingDir + "\\Out" + path.substring(path.lastIndexOf('\\'), path.lastIndexOf('.')) + ".omr";
-            String commandXML = audiverisPath + " -batch -export -option " + options[0] +" -output " + outputDir + " -- " + omrPath;
+            String commandXML = audiverisPath + " -batch -export -option " + XMLoption +
+                    ((options.length > 0) ? " -option " + stringifyOptions(options) : "") +
+                    " -output " + outputDir + " -- " + omrPath;
             System.out.println("Audiveris commandXML: " + commandXML);
 
             System.out.println("Running Audiveris..");
@@ -162,5 +167,10 @@ public class AudiverisController {
                 }
             }
         }
+    }
+
+    private String stringifyOptions(String[] options) {
+        return Arrays.stream(options)
+                .collect(Collectors.joining(" -option "));
     }
 }
