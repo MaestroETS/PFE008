@@ -71,8 +71,13 @@ def apply_custom_tempos(score, custom_tempos):
         sys.exit(1)
     
     for mark in tempo_marks:
-        measure_number = mark['measure']
-        tempo_value = mark['tempo']
+        measure_number = mark.get('measure')
+        tempo_value = mark.get('tempo')
+        
+        # Skip if either measure_number or tempo_value is None
+        if measure_number is None or tempo_value is None:
+            continue
+        
         metronome_mark = tempo.MetronomeMark(number=tempo_value)
         
         for part in score.parts:
@@ -82,6 +87,7 @@ def apply_custom_tempos(score, custom_tempos):
                 if not existing_tempos:
                     measure.insert(0, metronome_mark)
                     print(f"Inserted custom tempo {tempo_value} at measure {measure_number} in part {part.id}")
+
 
 
 def GetTempoFromXML(xml_file):

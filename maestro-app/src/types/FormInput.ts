@@ -11,8 +11,7 @@ export const formInputSchema = yup.object().shape({
       tempo: yup.number()
         .min(MIN_TEMPO, "Validation.TempoMin")
         .max(MAX_TEMPO, "Validation.TempoMax")
-        .integer()
-        .required("Validation.TempoRequired"),
+        .integer(),
       measure: yup.number()
         .min(1, "Validation.MeasureMin")
         .integer()
