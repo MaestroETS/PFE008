@@ -56,7 +56,7 @@ public class AudiverisController {
 
             // Export in XML formats
             String omrPath = workingDir + "\\Out" + path.substring(path.lastIndexOf('\\'), path.lastIndexOf('.')) + ".omr";
-            String commandXML = audiverisPath + " -batch -export -option " + options[0] +" -output " + outputDir + " -- " + omrPath;
+            String commandXML = audiverisPath + " -batch -export -option " + options[0] +" -output " + outputDir + " -- " + "\"" + omrPath + "\"";
             System.out.println("Audiveris commandXML: " + commandXML);
 
             System.out.println("Running Audiveris..");
@@ -111,7 +111,7 @@ public class AudiverisController {
 
     private String convertMxlToMidi(String mxlPath) {
         String pythonScriptPath = System.getProperty("user.dir") + "/src/main/MxlToMidi.py";
-        String command = "python " + pythonScriptPath + " " + mxlPath;
+        String command = "python " + pythonScriptPath + " " + "\"" + mxlPath + "\"";
 
         if (tempos != null && !tempos.isEmpty()) {
             command += " \"" + tempos.replace("\"", "\\\"") + "\"";
