@@ -1,16 +1,17 @@
 package PFE008.backend;
 
+import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.tika.Tika;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.web.multipart.MultipartFile;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-
-import org.apache.commons.lang3.RandomStringUtils;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
-import org.springframework.web.multipart.MultipartFile;
 
 /**
  * FileUtil class
@@ -67,5 +68,13 @@ public class FileUtil {
         }
          
         return null;
+    }
+
+    public static boolean isValidFile(MultipartFile multipartFile) throws IOException {
+        Tika tika = new Tika();
+        try (InputStream input = multipartFile.getInputStream()) {
+            String mimeType = tika.detect(input);
+            return mimeType.equals("application/pdf") || mimeType.equals("image/jpeg") || mimeType.equals("image/jpg") || mimeType.equals("image/png");
+        }
     }
 }

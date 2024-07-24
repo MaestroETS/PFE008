@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -35,7 +36,23 @@ public class ConvertController {
     @CrossOrigin(origins = "*")
 	public ResponseEntity<?> convert(@RequestParam("file") MultipartFile multipartFile) throws IOException {
 		FileUtil downloadUtil = new FileUtil();
-		
+        
+        // Validate input file
+        if (multipartFile.isEmpty()) {
+            return new ResponseEntity<>("Please select a file", HttpStatus.BAD_REQUEST);
+        }
+
+        // check if under 10MB
+        if (multipartFile.getSize() > 10485760) {
+            return new ResponseEntity<>("File is too large", HttpStatus.BAD_REQUEST);
+        }
+
+        // check the file signature
+        if (!FileUtil.isValidFile(multipartFile)) {
+            return new ResponseEntity<>("File is invalid. Must be a pdf, jpg, jpeg or png", HttpStatus.BAD_REQUEST);
+        }
+
+
 		// Save input file
 		String fileName = StringUtils.cleanPath(multipartFile.getOriginalFilename());
         Path filePath = FileUtil.saveFile(fileName, multipartFile, "In");
