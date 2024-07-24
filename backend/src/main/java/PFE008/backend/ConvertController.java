@@ -33,15 +33,17 @@ public class ConvertController {
 
 	@PostMapping("/convert")
     @CrossOrigin(origins = "*")
-	public ResponseEntity<?> convert(@RequestParam("file") MultipartFile multipartFile) throws IOException {
+	public ResponseEntity<?> convert(@RequestParam("file") MultipartFile multipartFile,
+                                     @RequestParam(value = "tempos", required = false) String tempos) throws IOException {
 		FileUtil downloadUtil = new FileUtil();
 		
 		// Save input file
 		String fileName = StringUtils.cleanPath(multipartFile.getOriginalFilename());
         Path filePath = FileUtil.saveFile(fileName, multipartFile, "In");
+        System.out.println("Received tempos: " + tempos);
 		
 		// Convert music sheet to .mxl
-		AudiverisController audiveris = new AudiverisController();
+        AudiverisController audiveris = new AudiverisController(tempos);
         String midiPath = audiveris.convert(filePath.toString());
 
 		if (midiPath == null) {

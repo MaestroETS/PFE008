@@ -5,19 +5,18 @@ import java.io.File;
 import java.io.InputStreamReader;
 import java.util.concurrent.TimeUnit;
 
-/**
- * Controller for Audiveris
- * 
- * This controller will handle the conversion of music sheets to .mxl files.
- * The controller will take a path to a music sheet file as input.
- * It will then convert the file to a .mxl file and
- * return its path.
- * 
- * @author Charlie Poncsak, modified by Philippe Langevin, Xavier Jeanson
- * @version 2024.06.17
- */
 public class AudiverisController {
-    
+    private String tempos;
+
+    public AudiverisController() {
+        this(null);
+    }
+
+    // Constructor with tempos parameter
+    public AudiverisController(String tempos) {
+        this.tempos = tempos;
+    }
+
     /**
      * Convert a music sheet to a .mid file
      * 
@@ -29,7 +28,7 @@ public class AudiverisController {
         System.out.println("Working Directory: " + workingDir);
 
         String audiverisPath = workingDir + "/audiveris/dist/bin/Audiveris.bat";
-        String inputFile = '\"' + path + "\"";
+        String inputFile = "\"" + path + "\"";
         String outputDir = workingDir + "\\Out";
         String[] options = new String[]{"org.audiveris.omr.sheet.BookManager.useCompression=false"};
         String commandMXL = audiverisPath + " -batch -export -output " + outputDir + " -- " + inputFile;
@@ -42,7 +41,6 @@ public class AudiverisController {
             ProcessBuilder processBuilder = new ProcessBuilder("cmd.exe", "/c", commandMXL);
             Process process = processBuilder.start();
 
-            // Read the output of the command
             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
             String line;
             while ((line = reader.readLine()) != null) {
@@ -56,7 +54,7 @@ public class AudiverisController {
                 return null;
             }
 
-            // export in xml formats --------------------------------
+            // Export in XML formats
             String omrPath = workingDir + "\\Out" + path.substring(path.lastIndexOf('\\'), path.lastIndexOf('.')) + ".omr";
             String commandXML = audiverisPath + " -batch -export -option " + options[0] +" -output " + outputDir + " -- " + omrPath;
             System.out.println("Audiveris commandXML: " + commandXML);
@@ -65,7 +63,6 @@ public class AudiverisController {
             ProcessBuilder processBuilderXML = new ProcessBuilder("cmd.exe", "/c", commandXML);
             Process processXML = processBuilderXML.start();
 
-            // Read the output of the command
             BufferedReader readerXML = new BufferedReader(new InputStreamReader(processXML.getInputStream()));
             String lineXML;
             while ((lineXML = readerXML.readLine()) != null) {
@@ -76,7 +73,6 @@ public class AudiverisController {
             if (exitCodeXML != 0) {
                 return null;
             }
-            //--------------------------------------------------------
 
         } catch (Exception e) {
             System.out.println("Error running Audiveris: " + e.getMessage());
@@ -86,7 +82,6 @@ public class AudiverisController {
         String mxlPath = workingDir + "\\Out" + path.substring(path.lastIndexOf('\\'), path.lastIndexOf('.')) + ".mxl";
         System.out.println("MXL Path: " + mxlPath);
 
-        // Checking if file got converted
         if (!new File(mxlPath).exists()) {
             System.out.println("MXL file not found.");
             return null;
@@ -96,7 +91,6 @@ public class AudiverisController {
         String midiPath = convertMxlToMidi(mxlPath);
         System.out.println("MIDI Path: " + midiPath);
 
-        // Checking if .mid file got converted
         if (!new File(midiPath).exists()) {
             System.out.println("MIDI file not found.");
             return null;
@@ -112,7 +106,6 @@ public class AudiverisController {
             }
         }).start();
 
-        // Return the .mid path
         return midiPath;
     }
 
@@ -120,13 +113,16 @@ public class AudiverisController {
         String pythonScriptPath = System.getProperty("user.dir") + "/src/main/MxlToMidi.py";
         String command = "python " + pythonScriptPath + " " + mxlPath;
 
+        if (tempos != null && !tempos.isEmpty()) {
+            command += " \"" + tempos.replace("\"", "\\\"") + "\"";
+        }
+
         System.out.println("Python command: " + command);
 
         try {
             ProcessBuilder processBuilder = new ProcessBuilder("cmd.exe", "/c", command);
             Process process = processBuilder.start();
 
-            // Read the output of the command
             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
             String line;
             while ((line = reader.readLine()) != null) {
@@ -140,7 +136,6 @@ public class AudiverisController {
                 return null;
             }
 
-            // Generate the output MIDI file path
             String midiPath = mxlPath.substring(0, mxlPath.lastIndexOf('.')) + ".mid";
             return midiPath;
 

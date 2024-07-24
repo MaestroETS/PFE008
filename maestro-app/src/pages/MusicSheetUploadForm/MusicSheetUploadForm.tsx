@@ -7,10 +7,11 @@ import {
   FormControlLabel,
   FormLabel,
   Grid,
+  IconButton,
   TextField,
   Typography,
 } from "@mui/material";
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller, useFieldArray } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { MAX_TEMPO, MIN_TEMPO, formInputSchema } from "../../types/FormInput";
 import MusicSheetUploader from "../../components/musicSheetUploader/MusicSheetUploader";
@@ -20,6 +21,8 @@ import useMaestroClient from "../../hooks/useMaestroClient";
 import MusicSheetUploadFormFooter from "./MusicSheetUploadFormFooter";
 import MusicSheetUploadFormHeader from "./MusicSheetUploadFormHeader";
 import RoundedBox from "../../components/roundedBox/RoundedBox";
+import AddIcon from "@mui/icons-material/Add";
+import RemoveIcon from "@mui/icons-material/Remove";
 
 const MusicSheetUploadForm: React.FC = () => {
   const { t } = useTranslation("musicSheetUploadForm");
@@ -37,12 +40,17 @@ const MusicSheetUploadForm: React.FC = () => {
     resolver: yupResolver(formInputSchema),
     defaultValues: {
       midiFileName: "",
-      tempo: null,
+      tempos: [{ tempo: undefined, measure: 1 }],
       shouldParsePageRange: false,
       file: null,
       pageRangeStart: null,
       pageRangeEnd: null,
     },
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "tempos",
   });
 
   const file = watch("file");
@@ -63,7 +71,7 @@ const MusicSheetUploadForm: React.FC = () => {
     const formData = new FormData();
     formData.append("midiFileName", data.midiFileName);
     formData.append("file", data.file);
-    formData.append("tempo", data.tempo);
+    formData.append("tempos", JSON.stringify(data.tempos));
     formData.append("shouldParsePageRange", data.shouldParsePageRange);
     if (data.shouldParsePageRange) {
       formData.append("pageRangeStart", data.pageRangeStart);
@@ -119,27 +127,70 @@ const MusicSheetUploadForm: React.FC = () => {
         />
         <br />
         <FormLabel>{t("TempoLabel")}</FormLabel>
-        <Controller
-          name="tempo"
-          control={control}
-          render={({ field }) => (
-            <TextField
-              {...field}
-              type="number"
-              id="outlined-required"
-              size="small"
-              error={!!errors.tempo}
-              helperText={
-                errors.tempo
-                  ? t(`${errors.tempo.message}`, {
-                      minTempo: MIN_TEMPO,
-                      maxTempo: MAX_TEMPO,
-                    })
-                  : ""
-              }
-            />
-          )}
-        />
+        {fields.map((item, index) => (
+          <Grid container spacing={2} key={item.id}>
+            <Grid item xs={5}>
+              <Controller
+                name={`tempos.${index}.tempo`}
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    type="number"
+                    id="outlined-required"
+                    size="small"
+                    label={t("Tempo")}
+                    error={!!errors.tempos?.[index]?.tempo}
+                    helperText={
+                      errors.tempos?.[index]?.tempo
+                        ? t(`${errors.tempos[index]?.tempo?.message}`, {
+                            minTempo: MIN_TEMPO,
+                            maxTempo: MAX_TEMPO,
+                          })
+                        : ""
+                    }
+                  />
+                )}
+              />
+            </Grid>
+            <Grid item xs={5}>
+              <Controller
+                name={`tempos.${index}.measure`}
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    type="number"
+                    id="outlined-required"
+                    size="small"
+                    label={t("Measure")}
+                    error={!!errors.tempos?.[index]?.measure}
+                    helperText={
+                      errors.tempos?.[index]?.measure
+                        ? t(`${errors.tempos[index]?.measure?.message}`)
+                        : ""
+                    }
+                  />
+                )}
+              />
+            </Grid>
+            <Grid item xs={2}>
+              <IconButton
+                aria-label="remove tempo"
+                onClick={() => remove(index)}
+                disabled={fields.length === 1}
+              >
+                <RemoveIcon />
+              </IconButton>
+              <IconButton
+                aria-label="add tempo"
+                onClick={() => append({ tempo: 120, measure: fields.length + 1 })}
+              >
+                <AddIcon />
+              </IconButton>
+            </Grid>
+          </Grid>
+        ))}
         <br />
         <FormControlLabel
           control={
