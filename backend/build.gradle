@@ -35,4 +35,9 @@ tasks.named('test') {
         showStandardStreams = false // True pour debugguer
 		exceptionFormat = 'full'
     }
+	dependsOn runPythonTests
+}
+
+task runPythonTests(type: Exec) {
+    commandLine 'python', 'src/test/java/PFE008/backend/MxlToMidi_tests.py' 
 }
