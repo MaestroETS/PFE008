@@ -62,6 +62,10 @@ COPY maestro-app ./maestro-app
 #Le script d'entré
 COPY entrypoint.sh ./entrypoint.sh 
 RUN chmod +x ./entrypoint.sh
+RUN sed -i 's/\r$//' ./entrypoint.sh
+RUN cat -v ./entrypoint.sh
+
+RUN mkdir -p backend/Audiveris/dist
 
 RUN cp -r $(flatpak info --show-location org.audiveris.audiveris)/files/bin backend/Audiveris/dist/
 RUN cp -r $(flatpak info --show-location org.audiveris.audiveris)/files/lib backend/Audiveris/dist/
@@ -73,3 +77,4 @@ RUN npm --prefix maestro-app/ install
 #Pour build : docker build -t maestro-app .
 #Pour exécuter l'application : docker run -p 3000:3000 -p 8080:8080 maestro-app
 ENTRYPOINT ["./entrypoint.sh"]
+#CMD ["bash"]
