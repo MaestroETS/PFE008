@@ -100,7 +100,7 @@ public class AudiverisController {
         new Thread(() -> {
             try {
                 TimeUnit.SECONDS.sleep(3);
-                cleanupDirectories(workingDir + "\\In", workingDir + "\\Out");
+                cleanupDirectories(workingDir + "\\In", workingDir + "\\Out", path.substring(path.lastIndexOf('\\') + 1, path.lastIndexOf('.')));
             } catch (InterruptedException e) {
                 System.out.println("Interrupted while waiting to clean up directories: " + e.getMessage());
             }
@@ -145,18 +145,18 @@ public class AudiverisController {
         }
     }
 
-    private void cleanupDirectories(String inputDir, String outputDir) {
-        deleteFilesInDirectory(inputDir);
-        deleteFilesInDirectory(outputDir);
+    private void cleanupDirectories(String inputDir, String outputDir, String fileNamePrefix) {
+        deleteFilesInDirectory(inputDir, fileNamePrefix);
+        deleteFilesInDirectory(outputDir, fileNamePrefix);
     }
 
-    private void deleteFilesInDirectory(String directoryPath) {
+    private void deleteFilesInDirectory(String directoryPath, String fileNamePrefix) {
         File directory = new File(directoryPath);
         if (directory.exists() && directory.isDirectory()) {
             File[] files = directory.listFiles();
             if (files != null) {
                 for (File file : files) {
-                    if (file.isFile()) {
+                    if (file.isFile() && file.getName().startsWith(fileNamePrefix)) {
                         file.delete();
                     }
                 }
