@@ -13,11 +13,13 @@
   "MesureLabel": "Mesure",
   "ForceTempoLabel": "Forcer le tempo",
   "AddOrRemoveLabel": "Ajouter/Retirer",
+  "ConvertLoading": "Votre fichier MIDI est en cours de création. Cela pourrais prendre quelques minutes...",
+  "ConvertError": "Une erreur s'est produite lors de la conversion de votre fichier...",
   "Validation": {
     "PageRange": "Interval invalide.",
     "MidiFileNameRequired": "Le nom du fichier MIDI est requit.",
     "TempoMin": "Le tempo minimum est {{minTempo}} BPM",
     "TempoMax": "Le tempo maximum est {{maxTempo}} BPM.",
-    "MeasureMin": "Impoosible d'avoir une mesure négative."
+    "MeasureMin": "Imposible d'avoir une mesure négative."
   }
 }

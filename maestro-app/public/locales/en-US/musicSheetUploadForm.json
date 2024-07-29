@@ -13,6 +13,8 @@
   "MesureLabel": "Mesure",
   "ForceTempoLabel": "Force tempo",
   "AddOrRemoveLabel": "Add/Remove",
+  "ConvertLoading": "Your file is being processed. This could take a minute...",
+  "ConvertError": "An error occured while processing your file...",
   "Validation": {
     "PageRange": "Range is invalid.",
     "MidiFileNameRequired": "MIDI file name is required.",

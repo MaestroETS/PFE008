@@ -29,7 +29,7 @@ const DEFAULT_FALLBACK_TEMPO = 120;
 const MusicSheetUploadForm: React.FC = () => {
   const { t } = useTranslation("musicSheetUploadForm");
 
-  const { convert, loading } = useMaestroClient();
+  const { convert, loading, error } = useMaestroClient();
 
   const {
     control,
@@ -210,7 +210,18 @@ const MusicSheetUploadForm: React.FC = () => {
             </Grid>
           </Grid>
         ))}
-        <Box>{loading && <>loading...</>}</Box>
+        {loading && (
+          <Box width="100%">
+            <Divider sx={{ my: 2 }} />
+            <Typography>{t("ConvertLoading")}</Typography>
+          </Box>
+        )}
+        {!loading && error !== null && (
+          <Box width="100%">
+            <Divider sx={{ my: 2 }} />
+            <Typography color="red">{t("ConvertError")}</Typography>
+          </Box>
+        )}
         <Divider sx={{ my: 2 }} />
         <Box display="flex" justifyContent="flex-end" width="100%">
           <MusicSheetUploadFormFooter
