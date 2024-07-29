@@ -1,13 +1,12 @@
 import React from "react";
 import {
   Box,
-  Checkbox,
   Container,
   Divider,
-  FormControlLabel,
   FormLabel,
   Grid,
   IconButton,
+  Switch,
   TextField,
   Typography,
 } from "@mui/material";
@@ -23,6 +22,9 @@ import MusicSheetUploadFormHeader from "./MusicSheetUploadFormHeader";
 import RoundedBox from "../../components/roundedBox/RoundedBox";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
+import Helper from "../../components/Helper/Helper";
+
+const DEFAULT_FALLBACK_TEMPO = 120;
 
 const MusicSheetUploadForm: React.FC = () => {
   const { t } = useTranslation("musicSheetUploadForm");
@@ -40,11 +42,8 @@ const MusicSheetUploadForm: React.FC = () => {
     resolver: yupResolver(formInputSchema),
     defaultValues: {
       midiFileName: "",
-      tempos: [{ tempo: undefined, measure: 1 }],
-      shouldParsePageRange: false,
+      tempos: [{ tempo: DEFAULT_FALLBACK_TEMPO, measure: 1, force: false }],
       file: null,
-      pageRangeStart: null,
-      pageRangeEnd: null,
     },
   });
 
@@ -54,8 +53,6 @@ const MusicSheetUploadForm: React.FC = () => {
   });
 
   const file = watch("file");
-  const shouldParsePageRange = watch("shouldParsePageRange");
-
   const canResetForm = (!isDirty && !file) || loading;
 
   const onFileChange = (file: File | null) => {
@@ -72,11 +69,6 @@ const MusicSheetUploadForm: React.FC = () => {
     formData.append("midiFileName", data.midiFileName);
     formData.append("file", data.file);
     formData.append("tempos", JSON.stringify(data.tempos));
-    formData.append("shouldParsePageRange", data.shouldParsePageRange);
-    if (data.shouldParsePageRange) {
-      formData.append("pageRangeStart", data.pageRangeStart);
-      formData.append("pageRangeEnd", data.pageRangeEnd);
-    }
 
     await convert(formData);
   };
@@ -84,6 +76,7 @@ const MusicSheetUploadForm: React.FC = () => {
   return (
     <Container maxWidth="md">
       <Box display="flex" justifyContent="flex-end" width="100%">
+        <Helper />
         <LanguageSwitcher />
       </Box>
       <RoundedBox component={"form"} onSubmit={handleSubmit(onSubmit)}>
@@ -109,27 +102,43 @@ const MusicSheetUploadForm: React.FC = () => {
             {t("OptionsSubTitle")}
           </Typography>
         </Box>
-        <FormLabel>{t("MidiLabel")}</FormLabel>
-        <Controller
-          name="midiFileName"
-          control={control}
-          render={({ field }) => (
-            <TextField
-              {...field}
-              id="outlined-required"
-              size="small"
-              error={!!errors.midiFileName}
-              helperText={
-                errors.midiFileName ? t(`${errors.midiFileName.message}`) : ""
-              }
-            />
-          )}
-        />
-        <br />
-        <FormLabel>{t("TempoLabel")}</FormLabel>
+        <Box display="flex" flexDirection="column" marginBottom={2}>
+          <Box marginBottom={1}>
+            <FormLabel>{t("MidiLabel")}</FormLabel>
+          </Box>
+          <Controller
+            name="midiFileName"
+            control={control}
+            render={({ field }) => (
+              <TextField
+                {...field}
+                id="outlined-required"
+                size="small"
+                error={!!errors.midiFileName}
+                helperText={
+                  errors.midiFileName ? t(`${errors.midiFileName.message}`) : ""
+                }
+              />
+            )}
+          />
+        </Box>
+        <Grid container spacing={1} marginBottom={1}>
+          <Grid item xs={4}>
+            <FormLabel>{t("TempoLabel")}</FormLabel>
+          </Grid>
+          <Grid item xs={4}>
+            <FormLabel>{t("MesureLabel")}</FormLabel>
+          </Grid>
+          <Grid item xs={2}>
+            <FormLabel>{t("ForceTempoLabel")}</FormLabel>
+          </Grid>
+          <Grid item xs={2}>
+            <FormLabel>{t("AddOrRemoveLabel")}</FormLabel>
+          </Grid>
+        </Grid>
         {fields.map((item, index) => (
-          <Grid container spacing={2} key={item.id}>
-            <Grid item xs={5}>
+          <Grid container spacing={1} key={item.id} marginBottom={2}>
+            <Grid item xs={4}>
               <Controller
                 name={`tempos.${index}.tempo`}
                 control={control}
@@ -139,7 +148,6 @@ const MusicSheetUploadForm: React.FC = () => {
                     type="number"
                     id="outlined-required"
                     size="small"
-                    label={t("Tempo")}
                     error={!!errors.tempos?.[index]?.tempo}
                     helperText={
                       errors.tempos?.[index]?.tempo
@@ -153,7 +161,7 @@ const MusicSheetUploadForm: React.FC = () => {
                 )}
               />
             </Grid>
-            <Grid item xs={5}>
+            <Grid item xs={4}>
               <Controller
                 name={`tempos.${index}.measure`}
                 control={control}
@@ -163,7 +171,6 @@ const MusicSheetUploadForm: React.FC = () => {
                     type="number"
                     id="outlined-required"
                     size="small"
-                    label={t("Measure")}
                     error={!!errors.tempos?.[index]?.measure}
                     helperText={
                       errors.tempos?.[index]?.measure
@@ -172,6 +179,13 @@ const MusicSheetUploadForm: React.FC = () => {
                     }
                   />
                 )}
+              />
+            </Grid>
+            <Grid item xs={2} alignContent="center">
+              <Controller
+                name={`tempos.${index}.force`}
+                control={control}
+                render={({ field }) => <Switch {...field} />}
               />
             </Grid>
             <Grid item xs={2}>
@@ -184,74 +198,19 @@ const MusicSheetUploadForm: React.FC = () => {
               </IconButton>
               <IconButton
                 aria-label="add tempo"
-                onClick={() => append({ tempo: 120, measure: fields.length + 1 })}
+                onClick={() =>
+                  append({
+                    tempo: DEFAULT_FALLBACK_TEMPO,
+                    measure: fields.length + 1,
+                  })
+                }
               >
                 <AddIcon />
               </IconButton>
             </Grid>
           </Grid>
         ))}
-        <br />
-        <FormControlLabel
-          control={
-            <Controller
-              name="shouldParsePageRange"
-              control={control}
-              render={({ field }) => (
-                <Checkbox {...field} checked={field.value} />
-              )}
-            />
-          }
-          label={t("ParsePageLabel")}
-        />
-        {shouldParsePageRange && (
-          <Box width="100%" paddingY="1em">
-            <Grid container spacing={1} alignItems="center">
-              <Grid item xs={3}>
-                <Controller
-                  name="pageRangeStart"
-                  control={control}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      type="number"
-                      id="outlined-required"
-                      size="small"
-                      label={t("StartPageLabel")}
-                      error={!!errors.pageRangeStart}
-                      helperText={
-                        errors.pageRangeStart
-                          ? t(`${errors.pageRangeStart.message}`)
-                          : ""
-                      }
-                    />
-                  )}
-                />
-              </Grid>
-              <Grid item xs={3}>
-                <Controller
-                  name="pageRangeEnd"
-                  control={control}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      type="number"
-                      id="outlined-required"
-                      size="small"
-                      label={t("EndPageLabel")}
-                      error={!!errors.pageRangeEnd}
-                      helperText={
-                        errors.pageRangeEnd
-                          ? t(`${errors.pageRangeEnd.message}`)
-                          : ""
-                      }
-                    />
-                  )}
-                />
-              </Grid>
-            </Grid>
-          </Box>
-        )}
+        <Box>{loading && <>loading...</>}</Box>
         <Divider sx={{ my: 2 }} />
         <Box display="flex" justifyContent="flex-end" width="100%">
           <MusicSheetUploadFormFooter

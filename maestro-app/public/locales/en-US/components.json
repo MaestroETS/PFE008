@@ -9,5 +9,15 @@
     "YourMusicSheetIsMIDIR": "Your music sheet is MIDI-ready!",
     "UploadedFile": "Uploaded file: ",
     "RemoveFile": "Remove file"
+  },
+  "Helper": {
+    "Tooltip": "Help",
+    "Title": "How does it work?",
+    "StepOne": "Select the name of the output MIDI file.",
+    "StepTwo": "Choose a backup tempo to use if the tempo recognition system fails.",
+    "StepThree": "Specify from which measure the backup tempo should be applied.",
+    "StepFour": "Force the use of the backup tempo, regardless of the results from the recognition system.",
+    "StepFive": "Add or remove a tempo/measure pair as needed.",
+    "StepSix": "Reset the form to enter new information or submit it to convert the sheet music into a MIDI file."
   }
 }

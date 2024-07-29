@@ -3,17 +3,21 @@
   "MaestroSubTitle": "Transform your music sheets into MIDI magic!",
   "OptionsTitle": "Options",
   "OptionsSubTitle": "Customize how your music sheet is interpreted and your MIDI symphony is orchestrated.",
-  "MidiLabel": "MIDI file name",
+  "MidiLabel": "MIDI file name *",
   "TempoLabel": "Partition tempo (BPM)",
   "ParsePageLabel": "Choose document pages to convert.",
   "StartPageLabel": "First page",
   "EndPageLabel": "Last page",
   "ConvertNow": "Convert Now!",
   "Reset": "Reset",
+  "MesureLabel": "Mesure",
+  "ForceTempoLabel": "Force tempo",
+  "AddOrRemoveLabel": "Add/Remove",
   "Validation": {
     "PageRange": "Range is invalid.",
     "MidiFileNameRequired": "MIDI file name is required.",
     "TempoMin": "Minimum tempo is {{minTempo}} BPM",
-    "TempoMax": "Maximum tempo is {{maxTempo}} BPM."
+    "TempoMax": "Maximum tempo is {{maxTempo}} BPM.",
+    "MeasureMin": "Negative measure is impossible."
   }
 }

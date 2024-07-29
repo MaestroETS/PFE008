@@ -9,5 +9,15 @@
     "YourMusicSheetIsMIDIR": "Votre partition de musique est prête pour le MIDI !",
     "UploadedFile": "Fichier téléchargé : ",
     "RemoveFile": "Supprimer le fichier"
+  },
+  "Helper": {
+    "Tooltip": "Aide",
+    "Title": "Comment ça fonctionne ?",
+    "StepOne": "Sélectionnez le nom du fichier MIDI qui sera généré.",
+    "StepTwo": "Choisissez un tempo de secours à utiliser si le système de reconnaissance du tempo échoue.",
+    "StepThree": "Définissez à partir de quelle mesure le tempo de secours doit s'appliquer.",
+    "StepFour": "Forcez l'utilisation du tempo de secours, indépendamment des résultats du système de reconnaissance.",
+    "StepFive": "Ajoutez ou retirez une paire de valeurs tempo/mesure selon les besoins.",
+    "StepSix": "Réinitialisez le formulaire pour saisir de nouvelles informations ou envoyez-le pour convertir la partition en fichier MIDI."
   }
 }

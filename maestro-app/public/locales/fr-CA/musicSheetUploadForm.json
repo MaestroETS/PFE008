@@ -3,17 +3,21 @@
   "MaestroSubTitle": "Transformez vos partitions en fichier MIDI !",
   "OptionsTitle": "Options",
   "OptionsSubTitle": "Personnalisez la façon dont votre partition est interprétée et comment votre symphonie MIDI est orchestrée.",
-  "MidiLabel": "Nom du fichier MIDI",
+  "MidiLabel": "Nom du fichier MIDI *",
   "TempoLabel": "Tempo de la partition (BPM)",
   "ParsePageLabel": "Choisir les pages à convertir.",
   "StartPageLabel": "Première page",
   "EndPageLabel": "Dernière page",
   "ConvertNow": "Convertir maintenant !",
   "Reset": "Effacer",
+  "MesureLabel": "Mesure",
+  "ForceTempoLabel": "Forcer le tempo",
+  "AddOrRemoveLabel": "Ajouter/Retirer",
   "Validation": {
     "PageRange": "Interval invalide.",
     "MidiFileNameRequired": "Le nom du fichier MIDI est requit.",
     "TempoMin": "Le tempo minimum est {{minTempo}} BPM",
-    "TempoMax": "Le tempo maximum est {{maxTempo}} BPM."
+    "TempoMax": "Le tempo maximum est {{maxTempo}} BPM.",
+    "MeasureMin": "Impoosible d'avoir une mesure négative."
   }
 }
