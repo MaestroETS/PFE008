@@ -95,18 +95,21 @@ def GetTempoFromXML(xml_file):
     tempoSaved = []
 
     # Load and parse the XML file
+    print("xml_file : " + xml_file)
     tree = xmlTree.parse(xml_file)
     root = tree.getroot()
 
     # Iterate through each 'measure' element
     for measure in root.findall('.//measure'):
         measureNumber = measure.get('number')
+        print("measure : " + str(measureNumber))
 
         # Iterate through each 'direction' element in the measure
         for direction in measure.findall('direction'):
             wordsElement = direction.find('.//words')
-            if wordsElement is not None:
+            if wordsElement is not None and wordsElement.text is not None:
                 wordsText = wordsElement.text
+                print("wordsElement : " + wordsText)
                 if wordsText:
                     # Check if 'J =' or 'J. =' is in the wordsText
                     if 'J =' in wordsText or 'J=' in wordsText or 'J. =' in wordsText or 'J.=' in wordsText:
@@ -123,7 +126,6 @@ def GetTempoFromXML(xml_file):
                         if tempoValue:
                             print(f"Measure Number: {measureNumber}, Word Value: {tempoValue}")
                             tempoSaved.append((int(measureNumber), tempoValue))
-
 
     return tempoSaved
 
@@ -143,7 +145,7 @@ def convert_tempo_term_to_bpm(term):
         94: ["andante", "at a walking pace", "allant", "gehend"],
         98: ["andantino", "slightly faster than andante", "un peu allant", "etwas gehend"],
         84: ["marcia moderato", "moderately", "in the manner of a march", "modérément", "mäßig"],
-        102: ["andante moderato", "between andante and moderato", "très modéré", "mäßig"],
+        102: ["andante moderato", "between andante and moderato", "très modéré", "mäßig", "andante très expressif"],
         114: ["moderato", "moderately", "modéré", "mäßig"],
         120: ["allegretto", "moderately fast", "assez vite", "ein wenig schnell"],
         120: ["allegro moderato", "close to but not quite allegro", "allègrement", "vite", "fröhlich", "lustig"],
