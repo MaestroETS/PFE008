@@ -31,14 +31,6 @@ RUN wget https://services.gradle.org/distributions/gradle-8.8-bin.zip && \
 RUN curl -fsSL https://nodejs.org/dist/v18.13.0/node-v18.13.0-linux-x64.tar.xz | tar -xJf - -C /usr/local --strip-components=1
 RUN npm install -g npm@8.19.4
 
-#Installer Tesseract pour Audiveris
-RUN mkdir -p /usr/share/tesseract-ocr/4.00/tessdata/ && \
-    wget -P /usr/share/tesseract-ocr/4.00/tessdata/ https://github.com/tesseract-ocr/tessdata/raw/main/eng.traineddata && \
-    wget -P /usr/share/tesseract-ocr/4.00/tessdata/ https://github.com/tesseract-ocr/tessdata/raw/main/deu.traineddata && \
-    wget -P /usr/share/tesseract-ocr/4.00/tessdata/ https://github.com/tesseract-ocr/tessdata/raw/main/fra.traineddata && \
-    wget -P /usr/share/tesseract-ocr/4.00/tessdata/ https://github.com/tesseract-ocr/tessdata/raw/main/ita.traineddata
-
-
 #Installer Audiveris
 RUN flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo && \
     flatpak install -y flathub org.audiveris.audiveris
@@ -51,8 +43,6 @@ RUN python3.12 -m venv /venv && \
 ENV PATH="/venv/bin:${PATH}"
 ENV JAVA_HOME=/usr/lib/jvm/jdk-22.0.2-oracle-x64
 ENV PATH=$JAVA_HOME/bin:/opt/gradle/gradle-8.8/bin:$PATH
-ENV TESSDATA_PREFIX=/usr/share/tesseract-ocr/4.00/
-
 
 WORKDIR /app
 
@@ -69,12 +59,15 @@ RUN mkdir -p backend/Audiveris/dist
 
 RUN cp -r $(flatpak info --show-location org.audiveris.audiveris)/files/bin backend/Audiveris/dist/
 RUN cp -r $(flatpak info --show-location org.audiveris.audiveris)/files/lib backend/Audiveris/dist/
+RUN cp -r $(flatpak info --show-location org.audiveris.audiveris)/files/share backend/Audiveris/dist/
+
 
 RUN gradle -p backend/ clean build
 
 RUN npm --prefix maestro-app/ install
 
-#Pour build : docker build -t maestro-app .
-#Pour exécuter l'application : docker run -p 3000:3000 -p 8080:8080 maestro-app
+#Pour build : docker build -t maestro .
+#Pour exécuter l'application : docker run -p 3000:3000 -p 8080:8080 maestro
 ENTRYPOINT ["./entrypoint.sh"]
+#Pour tester et debugguer
 #CMD ["bash"]

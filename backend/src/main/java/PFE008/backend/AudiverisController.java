@@ -1,5 +1,7 @@
 package PFE008.backend;
 
+import org.apache.commons.lang3.SystemUtils;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
@@ -7,6 +9,9 @@ import java.util.concurrent.TimeUnit;
 
 public class AudiverisController {
     private String tempos;
+    
+    private String terminalType = "cmd.exe";
+    private String terminalOption = "/c";
 
     public AudiverisController() {
         this(null);
@@ -27,18 +32,34 @@ public class AudiverisController {
         String workingDir = System.getProperty("user.dir");
         System.out.println("Working Directory: " + workingDir);
 
-        String audiverisPath = workingDir + "/audiveris/dist/bin/Audiveris.bat";
-        String inputFile = "\"" + path + "\"";
-        String outputDir = workingDir + "\\Out";
+        String audiverisPath = workingDir + File.separator + "backend" + File.separator + "Audiveris" + File.separator + "dist" + File.separator + "bin" + File.separator + "Audiveris";
+        String inputFile = workingDir + File.separator + path + File.separator;
+        String outputDir = workingDir + File.separator + "Out";
         String[] options = new String[]{"org.audiveris.omr.sheet.BookManager.useCompression=false"};
-        String commandMXL = audiverisPath + " -batch -export -output " + outputDir + " -- " + inputFile;
 
+
+        // fix for docker container running on linux
+        // Check the operating system
+        String os = System.getProperty("os.name").toLowerCase();
+        if (os.contains("win")) {
+            System.out.println("Windows OS detected");
+            audiverisPath = workingDir + File.separator + "audiveris" + File.separator + "dist" + File.separator + "bin" + File.separator + "Audiveris.bat";
+            terminalType = "cmd.exe";
+            terminalOption = "/c";
+        } else if (os.contains("linux") || os.contains("mac")) {
+            System.out.println("Linux or macOS OS detected");
+            audiverisPath = workingDir + File.separator + "backend" + File.separator + "Audiveris" + File.separator + "dist" + File.separator + "bin" + File.separator + "Audiveris";
+            terminalType = "sh";
+            terminalOption = "-c";
+        }
+
+        String commandMXL = audiverisPath + " -batch -export -output " + outputDir + " -- " + inputFile;
         System.out.println("Audiveris commandMXL: " + commandMXL);
 
         // Run the command
         try {
             System.out.println("Running Audiveris..");
-            ProcessBuilder processBuilder = new ProcessBuilder("cmd.exe", "/c", commandMXL);
+            ProcessBuilder processBuilder = new ProcessBuilder(terminalType, terminalOption, commandMXL);
             Process process = processBuilder.start();
 
             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
@@ -54,13 +75,17 @@ public class AudiverisController {
                 return null;
             }
 
+
             // Export in XML formats
-            String omrPath = workingDir + "\\Out" + path.substring(path.lastIndexOf('\\'), path.lastIndexOf('.')) + ".omr";
-            String commandXML = audiverisPath + " -batch -export -option " + options[0] +" -output " + outputDir + " -- " + "\"" + omrPath + "\"";
+            System.out.println("Exporting to XML..");
+            System.out.println("omrPath..");
+            String omrPath = workingDir + File.separator + "Out" + path.substring(path.lastIndexOf(File.separator), path.lastIndexOf('.')) + ".omr";
+            System.out.println("commandXML..");
+            String commandXML = audiverisPath + " -batch -export -option " + options[0] +" -output " + outputDir + " -- " + omrPath;
             System.out.println("Audiveris commandXML: " + commandXML);
 
             System.out.println("Running Audiveris..");
-            ProcessBuilder processBuilderXML = new ProcessBuilder("cmd.exe", "/c", commandXML);
+            ProcessBuilder processBuilderXML = new ProcessBuilder(terminalType, terminalOption, commandXML);
             Process processXML = processBuilderXML.start();
 
             BufferedReader readerXML = new BufferedReader(new InputStreamReader(processXML.getInputStream()));
@@ -79,7 +104,7 @@ public class AudiverisController {
             return null;
         }
 
-        String mxlPath = workingDir + "\\Out" + path.substring(path.lastIndexOf('\\'), path.lastIndexOf('.')) + ".mxl";
+        String mxlPath = workingDir + File.separator + "Out" + path.substring(path.lastIndexOf(File.separator), path.lastIndexOf('.')) + ".mxl";
         System.out.println("MXL Path: " + mxlPath);
 
         if (!new File(mxlPath).exists()) {
@@ -100,7 +125,7 @@ public class AudiverisController {
         new Thread(() -> {
             try {
                 TimeUnit.SECONDS.sleep(3);
-                cleanupDirectories(workingDir + "\\In", workingDir + "\\Out");
+                cleanupDirectories(workingDir + File.separator + "In", workingDir + File.separator + "Out");
             } catch (InterruptedException e) {
                 System.out.println("Interrupted while waiting to clean up directories: " + e.getMessage());
             }
@@ -110,7 +135,16 @@ public class AudiverisController {
     }
 
     private String convertMxlToMidi(String mxlPath) {
-        String pythonScriptPath = System.getProperty("user.dir") + "/src/main/MxlToMidi.py";
+        String pythonScriptPath = System.getProperty("user.dir") + File.separator + "src" + File.separator + "main" + File.separator + "MxlToMidi.py";
+
+        String os = System.getProperty("os.name").toLowerCase();
+        if (os.contains("win")) {
+            pythonScriptPath = System.getProperty("user.dir") + File.separator + "src" + File.separator + "main" + File.separator + "MxlToMidi.py";
+        }
+        if (os.contains("linux") || os.contains("mac")) {
+            pythonScriptPath = System.getProperty("user.dir") + File.separator + "backend" + File.separator + "src" + File.separator + "main" + File.separator + "MxlToMidi.py";
+        }
+
         String command = "python " + pythonScriptPath + " " + "\"" + mxlPath + "\"";
 
         if (tempos != null && !tempos.isEmpty()) {
@@ -120,7 +154,7 @@ public class AudiverisController {
         System.out.println("Python command: " + command);
 
         try {
-            ProcessBuilder processBuilder = new ProcessBuilder("cmd.exe", "/c", command);
+            ProcessBuilder processBuilder = new ProcessBuilder(terminalType, terminalOption, command);
             Process process = processBuilder.start();
 
             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
