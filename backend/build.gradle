@@ -22,9 +22,23 @@ dependencies {
 	implementation 'org.apache.commons:commons-lang3'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.3'
+  testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.3'
+	testImplementation 'org.mockito:mockito-core:5.2.0'
+  testImplementation 'org.mockito:mockito-junit-jupiter:5.2.0'
 	implementation 'org.apache.tika:tika-core:2.9.2'
 }
 
 tasks.named('test') {
 	useJUnitPlatform()
+	testLogging {
+        events "passed", "skipped", "failed"
+        showStandardStreams = false // True pour debugguer
+		exceptionFormat = 'full'
+    }
+	dependsOn runPythonTests
+}
+
+task runPythonTests(type: Exec) {
+    commandLine 'python', 'src/test/java/PFE008/backend/MxlToMidi_tests.py' 
 }

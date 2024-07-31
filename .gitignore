@@ -1,5 +1,6 @@
 # ignore music sheets
 *.pdf
-
+!backend/src/test/java/PFE008/backend/resources/manual_tests/PDF/*.pdf
 # ignore audiveris files
 backend/audiveris/
+.vscode

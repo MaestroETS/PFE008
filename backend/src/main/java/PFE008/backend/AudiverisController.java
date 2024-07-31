@@ -5,7 +5,6 @@ import org.apache.commons.lang3.SystemUtils;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
-import java.util.concurrent.TimeUnit;
 
 public class AudiverisController {
     private String tempos;
@@ -120,17 +119,7 @@ public class AudiverisController {
             System.out.println("MIDI file not found.");
             return null;
         }
-
-        // Start a new thread for cleaning up the directories after a delay
-        new Thread(() -> {
-            try {
-                TimeUnit.SECONDS.sleep(3);
-                cleanupDirectories(workingDir + File.separator + "In", workingDir + File.separator + "Out");
-            } catch (InterruptedException e) {
-                System.out.println("Interrupted while waiting to clean up directories: " + e.getMessage());
-            }
-        }).start();
-
+      
         return midiPath;
     }
 
@@ -176,25 +165,6 @@ public class AudiverisController {
         } catch (Exception e) {
             System.out.println("Error converting .mxl to .mid: " + e.getMessage());
             return null;
-        }
-    }
-
-    private void cleanupDirectories(String inputDir, String outputDir) {
-        deleteFilesInDirectory(inputDir);
-        deleteFilesInDirectory(outputDir);
-    }
-
-    private void deleteFilesInDirectory(String directoryPath) {
-        File directory = new File(directoryPath);
-        if (directory.exists() && directory.isDirectory()) {
-            File[] files = directory.listFiles();
-            if (files != null) {
-                for (File file : files) {
-                    if (file.isFile()) {
-                        file.delete();
-                    }
-                }
-            }
         }
     }
 }

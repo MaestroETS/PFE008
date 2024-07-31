@@ -1,21 +1,20 @@
 package PFE008.backend;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.file.Path;
-import java.util.concurrent.atomic.AtomicLong;
-
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.concurrent.TimeUnit;
 
 /**
  * ConvertController class
@@ -55,13 +54,25 @@ public class ConvertController {
 
 
 		// Save input file
-		String fileName = StringUtils.cleanPath(multipartFile.getOriginalFilename());
-        Path filePath = FileUtil.saveFile(fileName, multipartFile, "In");
+		String fileExtension = "." + StringUtils.getFilenameExtension(multipartFile.getOriginalFilename());
+        Path filePath = FileUtil.saveFile(fileExtension, multipartFile, "In");
         System.out.println("Received tempos: " + tempos);
 		
 		// Convert music sheet to .mxl
         AudiverisController audiveris = new AudiverisController(tempos);
         String midiPath = audiveris.convert(filePath.toString());
+
+        // Start a new thread for cleaning up the directories after a delay
+        new Thread(() -> {
+            try {
+                TimeUnit.SECONDS.sleep(3);
+                String workingDir = System.getProperty("user.dir");
+                System.out.println("Cleaning up directories - Deleting files starting with: " + filePath.toString().substring(filePath.toString().lastIndexOf('\\') + 1, filePath.toString().lastIndexOf('.')));
+                FileUtil.cleanupDirectories(workingDir + "\\In", workingDir + "\\Out", filePath.toString().substring(filePath.toString().lastIndexOf('\\') + 1, filePath.toString().lastIndexOf('.')));
+            } catch (InterruptedException e) {
+                System.out.println("Interrupted while waiting to clean up directories: " + e.getMessage());
+            }
+        }).start();
 
 		if (midiPath == null) {
 			return new ResponseEntity<>("Could not convert file", HttpStatus.INTERNAL_SERVER_ERROR);

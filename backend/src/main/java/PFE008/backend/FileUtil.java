@@ -6,6 +6,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -25,15 +26,15 @@ public class FileUtil {
     private Path foundFile;
     
     /**
-     * Save a file to a directory, and add a random code to the file name
+     * Save a file to a directory, with a random code as the file name
      * 
-     * @param fileName The name of the file
+     * @param fileExtension The name of the file
      * @param multipartFile The file to save
      * @param dir The directory to save the file to
      * @return The path to the saved file
      * @throws IOException  If the file could not be saved
      */
-    public static Path saveFile(String fileName, MultipartFile multipartFile, String dir) throws IOException {
+    public static Path saveFile(String fileExtension, MultipartFile multipartFile, String dir) throws IOException {
         Path uploadPath = Paths.get(dir);
         Path filePath;
           
@@ -44,10 +45,11 @@ public class FileUtil {
         String fileCode = RandomStringUtils.randomAlphanumeric(8);
          
         try (InputStream inputStream = multipartFile.getInputStream()) {
-            filePath = uploadPath.resolve(fileCode + "-" + fileName);
+            filePath = uploadPath.resolve(fileCode + fileExtension);
+            System.out.println("File saved: " + filePath);
             Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException ioe) {       
-            throw new IOException("Could not save file: " + fileName, ioe);
+            throw new IOException("Could not save file: " + fileCode + fileExtension, ioe);
         }
          
         return filePath;
@@ -75,6 +77,25 @@ public class FileUtil {
         try (InputStream input = multipartFile.getInputStream()) {
             String mimeType = tika.detect(input);
             return mimeType.equals("application/pdf") || mimeType.equals("image/jpeg") || mimeType.equals("image/jpg") || mimeType.equals("image/png");
+        }
+    }
+
+    public static void cleanupDirectories(String inputDir, String outputDir, String fileNamePrefix) {
+        deleteFilesInDirectory(inputDir, fileNamePrefix);
+        deleteFilesInDirectory(outputDir, fileNamePrefix);
+    }
+
+    private static void deleteFilesInDirectory(String directoryPath, String fileNamePrefix) {
+        File directory = new File(directoryPath);
+        if (directory.exists() && directory.isDirectory()) {
+            File[] files = directory.listFiles();
+            if (files != null) {
+                for (File file : files) {
+                    if (file.isFile() && file.getName().startsWith(fileNamePrefix)) {
+                        file.delete();
+                    }
+                }
+            }
         }
     }
 }
