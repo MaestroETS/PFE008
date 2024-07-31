@@ -16,22 +16,10 @@ export const formInputSchema = yup.object().shape({
         .min(1, "Validation.MeasureMin")
         .integer()
         .required("Validation.MeasureRequired"),
+      force : yup.boolean()
     })
   ).required("Validation.TemposRequired"),
-  shouldParsePageRange: yup.boolean(),
   file: yup.mixed(),
-  pageRangeStart: yup.number()
-    .min(MIN_PAGE_START, "Validation.PageRange")
-    .nullable()
-    .transform((value) => (isNaN(value) ? undefined : value))
-    .integer()
-    .optional(),
-  pageRangeEnd: yup.number()
-    .min(MIN_PAGE_START, "Validation.PageRange")
-    .nullable()
-    .transform((value) => (isNaN(value) ? undefined : value))
-    .integer()
-    .optional(),
 });
 
 export type FormInput = {
@@ -39,7 +27,7 @@ export type FormInput = {
   tempos: Array<{
     tempo: number;
     measure: number;
+    force: boolean;
   }>;
-  shouldParsePageRange: boolean;
   file: File | null;
 };
