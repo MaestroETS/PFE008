@@ -32,8 +32,8 @@ public class AudiverisController {
         String workingDir = System.getProperty("user.dir");
         System.out.println("Working Directory: " + workingDir);
 
-        String audiverisPath = workingDir + "/audiveris/dist/bin/Audiveris";
-        String inputFile = "/" + path + "/";
+        String audiverisPath = workingDir + "/backend/Audiveris/dist/bin/Audiveris";
+        String inputFile = workingDir + "/" + path + "/";
         String outputDir = workingDir + "/Out";
         String[] options = new String[]{"org.audiveris.omr.sheet.BookManager.useCompression=false"};
         String commandMXL = audiverisPath + " -batch -export -output " + outputDir + " -- " + inputFile;
@@ -72,8 +72,12 @@ public class AudiverisController {
                 return null;
             }
 
+
             // Export in XML formats
-            String omrPath = workingDir + "/Out" + path.substring(path.lastIndexOf('\\'), path.lastIndexOf('.')) + ".omr";
+            System.out.println("Exporting to XML..");
+            System.out.println("omrPath..");
+            String omrPath = workingDir + "/Out" + path.substring(path.lastIndexOf('/'), path.lastIndexOf('.')) + ".omr";
+            System.out.println("commandXML..");
             String commandXML = audiverisPath + " -batch -export -option " + options[0] +" -output " + outputDir + " -- " + "/" + omrPath + "/";
             System.out.println("Audiveris commandXML: " + commandXML);
 
@@ -97,7 +101,7 @@ public class AudiverisController {
             return null;
         }
 
-        String mxlPath = workingDir + "/Out" + path.substring(path.lastIndexOf('\\'), path.lastIndexOf('.')) + ".mxl";
+        String mxlPath = workingDir + "/Out" + path.substring(path.lastIndexOf('/'), path.lastIndexOf('.')) + ".mxl";
         System.out.println("MXL Path: " + mxlPath);
 
         if (!new File(mxlPath).exists()) {
@@ -128,7 +132,7 @@ public class AudiverisController {
     }
 
     private String convertMxlToMidi(String mxlPath) {
-        String pythonScriptPath = System.getProperty("user.dir") + "/src/main/MxlToMidi.py";
+        String pythonScriptPath = System.getProperty("user.dir") + "/backend/src/main/MxlToMidi.py";
         String command = "python " + pythonScriptPath + " " + "\"" + mxlPath + "\"";
 
         if (tempos != null && !tempos.isEmpty()) {
