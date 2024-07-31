@@ -95,18 +95,21 @@ def GetTempoFromXML(xml_file):
     tempoSaved = []
 
     # Load and parse the XML file
+    print("xml_file : " + xml_file)
     tree = xmlTree.parse(xml_file)
     root = tree.getroot()
 
     # Iterate through each 'measure' element
     for measure in root.findall('.//measure'):
         measureNumber = measure.get('number')
+        print("measure : " + str(measureNumber))
 
         # Iterate through each 'direction' element in the measure
         for direction in measure.findall('direction'):
             wordsElement = direction.find('.//words')
-            if wordsElement is not None:
+            if wordsElement is not None and wordsElement.text is not None:
                 wordsText = wordsElement.text
+                print("wordsElement : " + wordsText)
                 if wordsText:
                     # Check if 'J =' or 'J. =' is in the wordsText
                     if 'J =' in wordsText or 'J=' in wordsText or 'J. =' in wordsText or 'J.=' in wordsText:
@@ -123,7 +126,6 @@ def GetTempoFromXML(xml_file):
                         if tempoValue:
                             print(f"Measure Number: {measureNumber}, Word Value: {tempoValue}")
                             tempoSaved.append((int(measureNumber), tempoValue))
-
 
     return tempoSaved
 
