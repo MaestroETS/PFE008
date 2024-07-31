@@ -145,7 +145,7 @@ def convert_tempo_term_to_bpm(term):
         94: ["andante", "at a walking pace", "allant", "gehend"],
         98: ["andantino", "slightly faster than andante", "un peu allant", "etwas gehend"],
         84: ["marcia moderato", "moderately", "in the manner of a march", "modérément", "mäßig"],
-        102: ["andante moderato", "between andante and moderato", "très modéré", "mäßig"],
+        102: ["andante moderato", "between andante and moderato", "très modéré", "mäßig", "andante très expressif"],
         114: ["moderato", "moderately", "modéré", "mäßig"],
         120: ["allegretto", "moderately fast", "assez vite", "ein wenig schnell"],
         120: ["allegro moderato", "close to but not quite allegro", "allègrement", "vite", "fröhlich", "lustig"],
