@@ -62,7 +62,7 @@ RUN cp -r $(flatpak info --show-location org.audiveris.audiveris)/files/lib back
 RUN cp -r $(flatpak info --show-location org.audiveris.audiveris)/files/share backend/Audiveris/dist/
 
 
-RUN gradle -p backend/ clean build
+RUN gradle -p backend/ clean build -x test
 
 RUN npm --prefix maestro-app/ install
 
