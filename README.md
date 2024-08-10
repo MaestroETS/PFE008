@@ -49,6 +49,26 @@ The web app will be available at **localhost:3000/**
 
 Running the backend requires more steps, please see `backend/readme.md` for a step by step guide.
 
+
+#### Tests
+To run the tests suites go into the backend repository and run the command 
+```bash
+gradle test
+```
+It is important to note that the python's tests will be executed with the gradle command
+
+#### Deployment
+To build docker's image move to the root (where the Dockerfile is) and use : 
+```bash
+docker build -t maestro .
+```
+When you have a docker's image, you can run it with the command : 
+```bash
+docker run -p <portNumber>:3000 -p <portNumber>:8080 maestro
+```
+
+Note : To deploy the application, you must install Docker before hand.
+
 ## Screenshots
 
 <p align="center">
