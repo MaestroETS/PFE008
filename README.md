@@ -60,14 +60,25 @@ It is important to note that the python's tests will be executed with the gradle
 #### Deployment
 To build docker's image move to the root (where the Dockerfile is) and use : 
 ```bash
-docker build -t maestro .
+docker build -t musiquets/maestro:<tag> .
 ```
 When you have a docker's image, you can run it with the command : 
 ```bash
-docker run -p <portNumber>:3000 -p <portNumber>:8080 maestro
+docker run -p <portNumber>:3000 -p <portNumber>:8080 musiquets/maestro:<tag>
 ```
-
 Note : To deploy the application, you must install Docker before hand.
+
+you can also used an image already build on the offical Docker repo with the command  :
+```bash
+docker pull musiquets/maestro
+```
+if you want to update this image, you can use the commands : 
+```bash
+docker login
+docker build -t musiquets/maestro:<tag> .
+docker push  musiquets/maestro:<tag>
+```
+Note : You need to be a member of the organization to push a new images.
 
 ## Screenshots
 
