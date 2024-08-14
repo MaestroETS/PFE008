@@ -1,60 +1,63 @@
-FROM ubuntu:latest
+# Use a lightweight base image
+FROM openjdk:22-jdk-slim
 
-EXPOSE 8080
+# Set environment variables for Java and Gradle
+ENV JAVA_HOME=/usr/lib/jvm/jdk-22.0.2-oracle-x64
+ENV GRADLE_HOME=/opt/gradle
+ENV PATH="$JAVA_HOME/bin:$GRADLE_HOME/bin:/venv/bin:$PATH"
 
+# Install necessary tools and dependencies
 RUN apt-get update && apt-get upgrade -y && apt-get install -y \
     wget \
     curl \
     unzip \
-    software-properties-common \
-    lsb-release \
-    gradle \
     git \
     maven \
-    flatpak
+    python3.12 \
+    python3.12-venv \
+    pip \
+    flatpak \
+    --no-install-recommends && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
-# Installer le repo d'oracle pour installer Java 22
-RUN wget https://download.oracle.com/java/22/latest/jdk-22_linux-x64_bin.deb && \
-    apt install ./jdk-22_linux-x64_bin.deb
+# Install Gradle manually for more control over the version
+ARG GRADLE_VERSION=8.8
+RUN wget https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip && \
+    unzip gradle-${GRADLE_VERSION}-bin.zip -d /opt && \
+    ln -s /opt/gradle-${GRADLE_VERSION} ${GRADLE_HOME} && \
+    rm gradle-${GRADLE_VERSION}-bin.zip
 
-#Installer Python3.12 via le repo deadsnakes
-RUN add-apt-repository ppa:deadsnakes/ppa -y && \
-    apt update && \
-    apt install python3.12 python3.12-venv pip -y
-
-#Installer Gradle 8.8
-RUN wget https://services.gradle.org/distributions/gradle-8.8-bin.zip && \
-    unzip -d /opt/gradle ./gradle-8.8-bin.zip 
-
-#Installer Audiveris
+# Install Audiveris via Flatpak
 RUN flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo && \
     flatpak install -y flathub org.audiveris.audiveris
 
-#Installer les requirements Python
+# Create a virtual environment for Python and install dependencies
 RUN python3.12 -m venv /venv && \
     /venv/bin/pip install --upgrade pip && \
     /venv/bin/pip install music21
 
-ENV PATH="/venv/bin:${PATH}"
-ENV JAVA_HOME=/usr/lib/jvm/jdk-22.0.2-oracle-x64
-ENV PATH=$JAVA_HOME/bin:/opt/gradle/gradle-8.8/bin:$PATH
-
+# Set the working directory
 WORKDIR /app
 
+# Copy backend code
 COPY backend ./backend
 
-#Le script d'entré
-COPY entrypoint.sh ./entrypoint.sh 
-RUN chmod +x ./entrypoint.sh
-RUN sed -i 's/\r$//' ./entrypoint.sh
-RUN cat -v ./entrypoint.sh
+# Copy the entrypoint script and make it executable
+COPY entrypoint.sh ./entrypoint.sh
+RUN chmod +x ./entrypoint.sh && sed -i 's/\r$//' ./entrypoint.sh
 
-RUN mkdir -p backend/Audiveris/dist
+# Prepare Audiveris
+RUN mkdir -p backend/Audiveris/dist && \
+    cp -r $(flatpak info --show-location org.audiveris.audiveris)/files/bin backend/Audiveris/dist/ && \
+    cp -r $(flatpak info --show-location org.audiveris.audiveris)/files/lib backend/Audiveris/dist/ && \
+    cp -r $(flatpak info --show-location org.audiveris.audiveris)/files/share backend/Audiveris/dist/
 
-RUN cp -r $(flatpak info --show-location org.audiveris.audiveris)/files/bin backend/Audiveris/dist/
-RUN cp -r $(flatpak info --show-location org.audiveris.audiveris)/files/lib backend/Audiveris/dist/
-RUN cp -r $(flatpak info --show-location org.audiveris.audiveris)/files/share backend/Audiveris/dist/
-
+# Build the backend using Gradle
 RUN gradle -p backend/ clean build -x test
 
+# Expose the necessary port
+EXPOSE 8080
+
+# Use a smaller entry point
 ENTRYPOINT ["./entrypoint.sh"]
