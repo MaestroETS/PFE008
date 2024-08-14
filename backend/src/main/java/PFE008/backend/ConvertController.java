@@ -7,6 +7,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -25,7 +26,8 @@ import java.util.concurrent.TimeUnit;
  * It accepts a music sheet file as input, converts it to a .mxl file,
  * and returns the path of the converted file.
  * 
- * @author Charlie Poncsak, Philippe Langevin
+ * Also includes a health check endpoint to verify the service status.
+ * 
  * @version 2024.06.17
  */
 @RestController
@@ -74,6 +76,11 @@ public class ConvertController {
         } catch (IOException e) {
             return new ResponseEntity<>("An error occurred during file processing: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    @GetMapping("/health")
+    public ResponseEntity<String> healthCheck() {
+        return ResponseEntity.ok("Service is up and running");
     }
 
     private void cleanupDirectoriesWithDelay(Path filePath) {
