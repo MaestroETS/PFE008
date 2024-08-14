@@ -3,48 +3,25 @@ import os
 import json
 from music21 import converter, midi, dynamics, tempo, stream
 import xml.etree.ElementTree as xmlTree
+from concurrent.futures import ThreadPoolExecutor
+
+def apply_dynamics_to_part(part):
+    for element in part.flat.notesAndRests:
+        if element.isNote or element.isChord:
+            dynamic_context = element.getContextByClass(dynamics.Dynamic)
+            if dynamic_context:
+                velocity = int(dynamic_context.volumeScalar * 127)
+                element.volume.velocity = velocity if element.isNote else min(note.volume.velocity for note in element.notes)
 
 def apply_dynamics_to_notes(score):
-    for part in score.parts:
-        for element in part.flat.notesAndRests:
-            if element.isNote or element.isChord:
-                dynamic_context = element.getContextByClass(dynamics.Dynamic)
-                if dynamic_context:
-                    velocity = int(dynamic_context.volumeScalar * 127)
-                    element.volume.velocity = velocity if element.isNote else min(note.volume.velocity for note in element.notes)
+    with ThreadPoolExecutor() as executor:
+        executor.map(apply_dynamics_to_part, score.parts)
 
-def print_note_details(score):
-    for part in score.parts:
-        for element in part.flat.notesAndRests:
-            if element.isNote:
-                print(f"Note: {element.pitch}, Velocity: {element.volume.velocity}, Realized Volume: {element.volume.getRealized()}")
-            elif element.isChord:
-                for note in element.notes:
-                    print(f"Chord Note: {note.pitch}, Velocity: {note.volume.velocity}, Realized Volume: {note.volume.getRealized()}")
-
-def print_part_details(score):
-    for part in score.parts:
-        print(f"Part: {part.id}")
-        for element in part.flat.notesAndRests:
-            if element.isNote:
-                print(f"Note: {element.pitch}, Duration: {element.quarterLength}, Velocity: {element.volume.velocity}")
-            elif element.isChord:
-                for note in element.notes:
-                    print(f"Chord Note: {note.pitch}, Duration: {note.quarterLength}, Velocity: {note.volume.velocity}")
-
-def mxl_to_midi(mxl_file, midi_file, custom_tempos=None):
-    score = converter.parse(mxl_file)
-    score = confirm_mxl_tempo(os.path.splitext(mxl_file)[0], score)
-
-    apply_dynamics_to_notes(score)
-
-    if custom_tempos:
-        apply_custom_tempos(score, custom_tempos)
-
-    mf = midi.translate.music21ObjectToMidiFile(score)
-    mf.open(midi_file, 'wb')
-    mf.write()
-    mf.close()
+def apply_tempo_to_part(part, measure_number, metronome_mark):
+    measure = part.measure(measure_number)
+    if measure and not measure.getElementsByClass(tempo.MetronomeMark):
+        measure.insert(0, metronome_mark)
+        print(f"Inserted custom tempo {metronome_mark.number} at measure {measure_number} in part {part.id}")
 
 def apply_custom_tempos(score, custom_tempos):
     try:
@@ -53,15 +30,14 @@ def apply_custom_tempos(score, custom_tempos):
         print(f"Error parsing custom tempos JSON: {e}")
         sys.exit(1)
 
-    metronome_marks = {mark['measure']: tempo.MetronomeMark(number=mark['tempo'])
-                       for mark in tempo_marks if mark.get('measure') is not None and mark.get('tempo') is not None}
-
-    for part in score.parts:
-        for measure_number, metronome_mark in metronome_marks.items():
-            measure = part.measure(measure_number)
-            if measure and not measure.getElementsByClass(tempo.MetronomeMark):
-                measure.insert(0, metronome_mark)
-                print(f"Inserted custom tempo {metronome_mark.number} at measure {measure_number} in part {part.id}")
+    with ThreadPoolExecutor() as executor:
+        for mark in tempo_marks:
+            measure_number = mark.get('measure')
+            tempo_value = mark.get('tempo')
+            if measure_number is not None and tempo_value is not None:
+                metronome_mark = tempo.MetronomeMark(number=tempo_value)
+                for part in score.parts:
+                    executor.submit(apply_tempo_to_part, part, measure_number, metronome_mark)
 
 def get_tempo_from_xml(xml_file):
     tempo_saved = []
@@ -112,12 +88,11 @@ def confirm_mxl_tempo(base_path, score):
     tempo_saved = get_tempo_from_xml(base_path + ".xml")
     clear_initial_tempos(score)
 
-    for measure_number, tempo_value in tempo_saved:
-        metronome_mark = tempo.MetronomeMark(number=tempo_value)
-        for part in score.parts:
-            measure = part.measure(measure_number)
-            if measure is not None:
-                measure.insert(0, metronome_mark)
+    with ThreadPoolExecutor() as executor:
+        for measure_number, tempo_value in tempo_saved:
+            metronome_mark = tempo.MetronomeMark(number=tempo_value)
+            for part in score.parts:
+                executor.submit(apply_tempo_to_part, part, measure_number, metronome_mark)
 
     return score
 
