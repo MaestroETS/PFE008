@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   maestro-backend:
     build: 
@@ -11,6 +13,12 @@ services:
     volumes:
       - ./backend:/app/backend
     command: ["./entrypoint.sh"]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
 
   maestro-frontend:
     build:
@@ -19,12 +27,19 @@ services:
     ports:
       - "3000:3000"
     depends_on:
-      - maestro-backend
+      maestro-backend:
+        condition: service_healthy
     environment:
       - NODE_ENV=development
     volumes:
       - ./maestro-app:/app/maestro-app
     command: ["npm", "start", "--prefix", "maestro-app"]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
 
 volumes:
   backend-data:
