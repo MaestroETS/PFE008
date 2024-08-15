@@ -23,10 +23,6 @@ RUN wget https://download.oracle.com/java/22/latest/jdk-22_linux-x64_bin.deb && 
     apt install -y ./jdk-22_linux-x64_bin.deb && \
     rm ./jdk-22_linux-x64_bin.deb
 
-# Set environment variables for Java
-ENV JAVA_HOME=/usr/lib/jvm/jdk-22
-ENV PATH="$JAVA_HOME/bin:$PATH"
-
 # Installer Python3.12 via le repo deadsnakes
 RUN add-apt-repository ppa:deadsnakes/ppa -y && \
     apt-get update && \
