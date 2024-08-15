@@ -33,11 +33,17 @@ jobs:
         pip install --upgrade pip
         pip install music21
 
+    - name: Install and configure Flatpak
+      run: |
+        sudo apt-get install -y flatpak
+        sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+        sudo flatpak install -y flathub org.audiveris.audiveris
+
     - name: Install Gradle
       run: |
         wget https://services.gradle.org/distributions/gradle-8.8-bin.zip
         unzip gradle-8.8-bin.zip
-        mv gradle-8.8 /opt/gradle
+        sudo mv gradle-8.8 /opt/gradle
         echo "export PATH=\$PATH:/opt/gradle/bin" >> $GITHUB_ENV
 
     - name: Build with Gradle
