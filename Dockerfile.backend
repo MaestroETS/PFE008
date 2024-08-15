@@ -18,12 +18,12 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Installer le repo d'oracle pour installer Java 22
+# Install Oracle Java 22
 RUN wget https://download.oracle.com/java/22/latest/jdk-22_linux-x64_bin.deb && \
     apt install -y ./jdk-22_linux-x64_bin.deb && \
     rm ./jdk-22_linux-x64_bin.deb
 
-# Installer Python3.12 via le repo deadsnakes
+# Install Python 3.12 via the deadsnakes PPA
 RUN add-apt-repository ppa:deadsnakes/ppa -y && \
     apt-get update && \
     apt-get install -y \
@@ -33,17 +33,23 @@ RUN add-apt-repository ppa:deadsnakes/ppa -y && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Installer Gradle 8.8
+# Install Gradle 8.8
 RUN wget https://services.gradle.org/distributions/gradle-8.8-bin.zip && \
     unzip gradle-8.8-bin.zip -d /opt/gradle && \
     ln -s /opt/gradle/gradle-8.8 /opt/gradle/gradle && \
     rm gradle-8.8-bin.zip
 
-
-
 # Install Audiveris via Flatpak
 RUN flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo && \
     flatpak install -y flathub org.audiveris.audiveris
+
+# Create directories for Audiveris
+RUN mkdir -p /app/backend/Audiveris/dist
+
+# Copy Audiveris files to the backend directory
+RUN cp -r $(flatpak info --show-location org.audiveris.audiveris)/files/bin /app/backend/Audiveris/dist/
+RUN cp -r $(flatpak info --show-location org.audiveris.audiveris)/files/lib /app/backend/Audiveris/dist/
+RUN cp -r $(flatpak info --show-location org.audiveris.audiveris)/files/share /app/backend/Audiveris/dist/
 
 # Create a virtual environment for Python and install dependencies
 RUN python3.12 -m venv /venv && \
@@ -62,10 +68,6 @@ WORKDIR /app
 
 # Copy backend code
 COPY backend ./backend
-
-RUN cp -r $(flatpak info --show-location org.audiveris.audiveris)/files/bin backend/Audiveris/dist/
-RUN cp -r $(flatpak info --show-location org.audiveris.audiveris)/files/lib backend/Audiveris/dist/
-RUN cp -r $(flatpak info --show-location org.audiveris.audiveris)/files/share backend/Audiveris/dist/
 
 # Build the Java application using Gradle
 RUN gradle -p backend/ clean build
