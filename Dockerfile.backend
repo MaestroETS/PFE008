@@ -1,5 +1,5 @@
-# Stage 1: Build stage
-FROM openjdk:22-jdk-slim as build
+# Use a lightweight Ubuntu base image
+FROM ubuntu:22.04
 
 # Set environment variables for Java and Gradle
 ENV JAVA_HOME=/usr/lib/jvm/jdk-22.0.2-oracle-x64
@@ -8,15 +8,20 @@ ENV PATH="$JAVA_HOME/bin:$GRADLE_HOME/bin:/venv/bin:$PATH"
 
 # Install necessary tools and dependencies
 RUN apt-get update && apt-get upgrade -y && apt-get install -y \
+    software-properties-common \
     wget \
     curl \
     unzip \
     git \
     maven \
+    flatpak \
+    --no-install-recommends && \
+    add-apt-repository ppa:deadsnakes/ppa && \
+    apt-get update && \
+    apt-get install -y \
     python3.12 \
     python3.12-venv \
-    python3-pip \
-    --no-install-recommends && \
+    python3-pip && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
@@ -26,6 +31,10 @@ RUN wget https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.
     unzip gradle-${GRADLE_VERSION}-bin.zip -d /opt && \
     ln -s /opt/gradle-${GRADLE_VERSION} ${GRADLE_HOME} && \
     rm gradle-${GRADLE_VERSION}-bin.zip
+
+# Install Audiveris via Flatpak
+RUN flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo && \
+    flatpak install -y flathub org.audiveris.audiveris
 
 # Create a virtual environment for Python and install dependencies
 RUN python3.12 -m venv /venv && \
@@ -38,50 +47,21 @@ WORKDIR /app
 # Copy backend code
 COPY backend ./backend
 
+# Copy the entrypoint script and make it executable
+COPY entrypoint.sh ./entrypoint.sh
+RUN chmod +x ./entrypoint.sh && sed -i 's/\r$//' ./entrypoint.sh
+
+# Prepare Audiveris
+RUN mkdir -p backend/Audiveris/dist && \
+    cp -r $(flatpak info --show-location org.audiveris.audiveris)/files/bin backend/Audiveris/dist/ && \
+    cp -r $(flatpak info --show-location org.audiveris.audiveris)/files/lib backend/Audiveris/dist/ && \
+    cp -r $(flatpak info --show-location org.audiveris.audiveris)/files/share backend/Audiveris/dist/
+
 # Build the backend using Gradle
 RUN gradle -p backend/ clean build -x test
-
-# Stage 2: Runtime stage
-FROM openjdk:22-jdk-slim
-
-# Set environment variables for Java and Gradle
-ENV JAVA_HOME=/usr/lib/jvm/jdk-22.0.2-oracle-x64
-ENV PATH="$JAVA_HOME/bin:/venv/bin:$PATH"
-
-# Install necessary tools for runtime and flatpak
-RUN apt-get update && apt-get upgrade -y && apt-get install -y \
-    wget \
-    curl \
-    unzip \
-    flatpak \
-    --no-install-recommends && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
-
-# Install Audiveris via Flatpak
-RUN flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo && \
-    flatpak install -y flathub org.audiveris.audiveris
-
-# Prepare Audiveris runtime files
-RUN mkdir -p /app/backend/Audiveris/dist && \
-    cp -r $(flatpak info --show-location org.audiveris.audiveris)/files/bin /app/backend/Audiveris/dist/ && \
-    cp -r $(flatpak info --show-location org.audiveris.audiveris)/files/lib /app/backend/Audiveris/dist/ && \
-    cp -r $(flatpak info --show-location org.audiveris.audiveris)/files/share /app/backend/Audiveris/dist/
-
-# Copy built application from build stage
-COPY --from=build /venv /venv
-COPY --from=build /app/backend /app/backend
-
-# Copy the entrypoint script and make it executable
-COPY entrypoint.sh /app/entrypoint.sh
-RUN chmod +x /app/entrypoint.sh && sed -i 's/\r$//' /app/entrypoint.sh
 
 # Expose the necessary port
 EXPOSE 8080
 
-# Switch to a non-root user for better security
-RUN useradd -ms /bin/bash appuser
-USER appuser
-
 # Use a smaller entry point
-ENTRYPOINT ["/app/entrypoint.sh"]
+ENTRYPOINT ["./entrypoint.sh"]
