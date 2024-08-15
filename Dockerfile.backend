@@ -57,8 +57,6 @@ RUN python3.12 -m venv /venv && \
     /venv/bin/pip install music21
 
 # Set environment variables
-ENV GRADLE_HOME=/opt/gradle/gradle
-ENV PATH="$GRADLE_HOME/bin:$PATH"
 ENV PATH="/venv/bin:${PATH}"
 ENV JAVA_HOME=/usr/lib/jvm/jdk-22.0.2-oracle-x64
 ENV PATH=$JAVA_HOME/bin:/opt/gradle/gradle-8.8/bin:$PATH
