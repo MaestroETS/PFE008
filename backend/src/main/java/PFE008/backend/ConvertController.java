@@ -17,6 +17,18 @@ import java.util.concurrent.TimeUnit;
 import java.io.IOException;
 
 
+/**
+ * ConvertController class
+ * 
+ * This class will be used to handle the conversion of music sheets to MIDI files.
+ * The controller will take a path to a music sheet file as input.
+ * It will then convert the file to a .mxl file and
+ * return its path.
+ * 
+ * 
+ * @author Charlie Poncsak, Philippe Langevin
+ * @version 2024.06.17
+ */
 @RestController
 public class ConvertController {
 
