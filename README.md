@@ -58,6 +58,11 @@ gradle test
 It is important to note that the python's tests will be executed with the gradle command
 
 #### Deployment
+To run locally a docker-compose
+```
+docker-compose up -d
+```
+
 To build docker's image move to the root (where the Dockerfile is) and use : 
 ```bash
 docker build -t musiquets/maestro:<tag> .
