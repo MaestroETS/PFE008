@@ -12,7 +12,6 @@ services:
       PATH: "$JAVA_HOME/bin:/opt/gradle/gradle-8.8/bin:/venv/bin:${PATH}"
     volumes:
       - ./backend:/app/backend
-    command: ["./entrypoint.sh"]
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 30s
