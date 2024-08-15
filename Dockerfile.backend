@@ -45,10 +45,6 @@ RUN wget https://services.gradle.org/distributions/gradle-8.8-bin.zip && \
 RUN flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo && \
     flatpak install -y flathub org.audiveris.audiveris
 
-RUN cp -r $(flatpak info --show-location org.audiveris.audiveris)/files/bin backend/Audiveris/dist/
-RUN cp -r $(flatpak info --show-location org.audiveris.audiveris)/files/lib backend/Audiveris/dist/
-RUN cp -r $(flatpak info --show-location org.audiveris.audiveris)/files/share backend/Audiveris/dist/
-
 # Create a virtual environment for Python and install dependencies
 RUN python3.12 -m venv /venv && \
     /venv/bin/pip install --upgrade pip && \
@@ -66,6 +62,10 @@ WORKDIR /app
 
 # Copy backend code
 COPY backend ./backend
+
+RUN cp -r $(flatpak info --show-location org.audiveris.audiveris)/files/bin backend/Audiveris/dist/
+RUN cp -r $(flatpak info --show-location org.audiveris.audiveris)/files/lib backend/Audiveris/dist/
+RUN cp -r $(flatpak info --show-location org.audiveris.audiveris)/files/share backend/Audiveris/dist/
 
 # Build the Java application using Gradle
 RUN gradle -p backend/ clean build
