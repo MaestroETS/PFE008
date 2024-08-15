@@ -1,22 +1,17 @@
-# Use a lightweight Ubuntu base image
-FROM ubuntu:22.04
+FROM ubuntu:latest
 
-# Set timezone environment variables to avoid interactive prompt
-ENV DEBIAN_FRONTEND=noninteractive
-ENV TZ=America/New_York
+EXPOSE 8080
 
-# Install necessary tools and dependencies
 RUN apt-get update && apt-get upgrade -y && apt-get install -y \
-    software-properties-common \
     wget \
     curl \
     unzip \
+    software-properties-common \
+    lsb-release \
+    gradle \
     git \
     maven \
-    flatpak \
-    --no-install-recommends && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+    flatpak
 
 # Install Oracle Java 22
 RUN wget https://download.oracle.com/java/22/latest/jdk-22_linux-x64_bin.deb && \
@@ -25,17 +20,14 @@ RUN wget https://download.oracle.com/java/22/latest/jdk-22_linux-x64_bin.deb && 
 
 # Install Python 3.12 via the deadsnakes PPA
 RUN add-apt-repository ppa:deadsnakes/ppa -y && \
-    apt-get update && \
-    apt-get install -y \
-    python3.12 \
-    python3.12-venv \
-    python3-pip && \
+    apt update && \
+    apt install -y python3.12 python3.12-venv python3-pip && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
 # Install Gradle 8.8
 RUN wget https://services.gradle.org/distributions/gradle-8.8-bin.zip && \
-    unzip gradle-8.8-bin.zip -d /opt/gradle && \
+    unzip -d /opt/gradle ./gradle-8.8-bin.zip && \
     ln -s /opt/gradle/gradle-8.8 /opt/gradle/gradle && \
     rm gradle-8.8-bin.zip
 
@@ -43,15 +35,7 @@ RUN wget https://services.gradle.org/distributions/gradle-8.8-bin.zip && \
 RUN flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo && \
     flatpak install -y flathub org.audiveris.audiveris
 
-# Create directories for Audiveris
-RUN mkdir -p /app/backend/Audiveris/dist
-
-# Copy Audiveris files to the backend directory
-RUN cp -r $(flatpak info --show-location org.audiveris.audiveris)/files/bin /app/backend/Audiveris/dist/
-RUN cp -r $(flatpak info --show-location org.audiveris.audiveris)/files/lib /app/backend/Audiveris/dist/
-RUN cp -r $(flatpak info --show-location org.audiveris.audiveris)/files/share /app/backend/Audiveris/dist/
-
-# Create a virtual environment for Python and install dependencies
+# Install Python requirements
 RUN python3.12 -m venv /venv && \
     /venv/bin/pip install --upgrade pip && \
     /venv/bin/pip install music21
@@ -61,20 +45,21 @@ ENV PATH="/venv/bin:${PATH}"
 ENV JAVA_HOME=/usr/lib/jvm/jdk-22.0.2-oracle-x64
 ENV PATH=$JAVA_HOME/bin:/opt/gradle/gradle-8.8/bin:$PATH
 
-# Set the working directory
 WORKDIR /app
 
-# Copy backend code
 COPY backend ./backend
 
-# Build the Java application using Gradle
+# Prepare Audiveris resources
+RUN mkdir -p backend/Audiveris/dist
+RUN cp -r $(flatpak info --show-location org.audiveris.audiveris)/files/bin backend/Audiveris/dist/
+RUN cp -r $(flatpak info --show-location org.audiveris.audiveris)/files/lib backend/Audiveris/dist/
+RUN cp -r $(flatpak info --show-location org.audiveris.audiveris)/files/share backend/Audiveris/dist/
+
+# Build the backend using Gradle
 RUN gradle -p backend/ clean build -x test
 
-# Ensure the JAR file is present before continuing
-RUN if [ ! -f backend/build/libs/backend-0.0.1-SNAPSHOT.jar ]; then echo $(ls -la backend/build); exit 1; fi
-
-# Expose necessary ports
-EXPOSE 8080
-
-# Run the Java application
+# Corrected ENTRYPOINT to properly execute the Java application
 ENTRYPOINT ["java", "-jar", "backend/build/libs/backend-0.0.1-SNAPSHOT.jar"]
+
+# Uncomment for debugging purposes
+# CMD ["bash"]
