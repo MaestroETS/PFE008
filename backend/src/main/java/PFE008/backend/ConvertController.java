@@ -1,5 +1,3 @@
-package PFE008.backend;
-
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -7,7 +5,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -19,17 +16,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-/**
- * ConvertController class
- * 
- * This class handles the conversion of music sheets to MIDI files.
- * It accepts a music sheet file as input, converts it to a .mxl file,
- * and returns the path of the converted file.
- * 
- * Also includes a health check endpoint to verify the service status.
- * 
- * @version 2024.06.17
- */
 @RestController
 public class ConvertController {
 
@@ -64,7 +50,7 @@ public class ConvertController {
             String midiPath = audiveris.convert(filePath.toString());
 
             if (midiPath == null) {
-                return new ResponseEntity<>("Could not convert file", HttpStatus.INTERNAL_SERVER_ERROR);
+                return new ResponseEntity<String>("Could not convert file", HttpStatus.INTERNAL_SERVER_ERROR);
             }
 
             // Schedule cleanup of directories after a delay
@@ -74,13 +60,8 @@ public class ConvertController {
             return buildFileResponse(midiPath);
 
         } catch (IOException e) {
-            return new ResponseEntity<>("An error occurred during file processing: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<String>("An error occurred during file processing: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
-    }
-
-    @GetMapping("/health")
-    public ResponseEntity<String> healthCheck() {
-        return ResponseEntity.ok("Service is up and running");
     }
 
     private void cleanupDirectoriesWithDelay(Path filePath) {
