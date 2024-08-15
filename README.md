@@ -1,6 +1,14 @@
 # Maestro
 
 [![AGPL License](https://img.shields.io/badge/license-AGPL-blue.svg)](http://www.gnu.org/licenses/agpl-3.0)
+[![Java Version](https://img.shields.io/badge/Java-22.0.2-blue)](https://www.oracle.com/java/technologies/javase/jdk22-archive-downloads.html)
+[![Python Version](https://img.shields.io/badge/Python-3.12-blue)](https://www.python.org/downloads/release/python-3120/)
+[![Node.js Version](https://img.shields.io/badge/Node.js-18.13.0-green)](https://nodejs.org/en/blog/release/v18.13.0/)
+[![Docker Pulls](https://img.shields.io/docker/pulls/musiquets/maestro)](https://hub.docker.com/r/musiquets/maestro)
+[![Docker Image Size](https://img.shields.io/docker/image-size/musiquets/maestro/latest)](https://hub.docker.com/r/musiquets/maestro)
+[![Issues](https://img.shields.io/github/issues/PrimePhil/PFE008)](https://github.com/PrimePhil/PFE008/issues)
+[![Pull Requests](https://img.shields.io/github/issues-pr/PrimePhil/PFE008)](https://github.com/PrimePhil/PFE008/pulls)
+
 
 Maestro is a web application that effortlessly converts music sheets into MIDI files using an advanced optical music recognition engine. Simply upload your PNG, PDF, or JPG files, adjust the tempo to your preference, and let the magic unfold.
 
