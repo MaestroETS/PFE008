@@ -7,6 +7,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -31,11 +32,11 @@ import java.util.concurrent.TimeUnit;
 @RestController
 public class ConvertController {
 
-	@PostMapping("/convert")
+    @PostMapping("/convert")
     @CrossOrigin(origins = "*")
-	public ResponseEntity<?> convert(@RequestParam("file") MultipartFile multipartFile,
+    public ResponseEntity<?> convert(@RequestParam("file") MultipartFile multipartFile,
                                      @RequestParam(value = "tempos", required = false) String tempos) throws IOException {
-		FileUtil downloadUtil = new FileUtil();
+        FileUtil downloadUtil = new FileUtil();
         
         // Validate input file
         if (multipartFile.isEmpty()) {
@@ -52,13 +53,12 @@ public class ConvertController {
             return new ResponseEntity<>("File is invalid. Must be a pdf, jpg, jpeg or png", HttpStatus.BAD_REQUEST);
         }
 
-
-		// Save input file
-		String fileExtension = "." + StringUtils.getFilenameExtension(multipartFile.getOriginalFilename());
+        // Save input file
+        String fileExtension = "." + StringUtils.getFilenameExtension(multipartFile.getOriginalFilename());
         Path filePath = FileUtil.saveFile(fileExtension, multipartFile, "In");
         System.out.println("Received tempos: " + tempos);
-		
-		// Convert music sheet to .mxl
+        
+        // Convert music sheet to .mxl
         AudiverisController audiveris = new AudiverisController(tempos);
         String midiPath = audiveris.convert(filePath.toString());
 
@@ -74,9 +74,9 @@ public class ConvertController {
             }
         }).start();
 
-		if (midiPath == null) {
-			return new ResponseEntity<>("Could not convert file", HttpStatus.INTERNAL_SERVER_ERROR);
-		}
+        if (midiPath == null) {
+            return new ResponseEntity<>("Could not convert file", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
          
         // Build response
         Resource resource = null;
@@ -97,5 +97,10 @@ public class ConvertController {
             .contentType(MediaType.parseMediaType(contentType))
             .header(HttpHeaders.CONTENT_DISPOSITION, headerValue)
             .body(resource); 
+    }
+
+    @GetMapping("/health")
+    public ResponseEntity<String> healthCheck() {
+        return ResponseEntity.ok("Service is up and running");
     }
 }
