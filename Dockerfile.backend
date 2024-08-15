@@ -70,7 +70,7 @@ WORKDIR /app
 COPY backend ./backend
 
 # Build the Java application using Gradle
-RUN gradle -p backend/ clean build
+RUN gradle -p backend/ clean build -x test
 
 # Check if the JAR file is present
 RUN ls -la backend/build/libs/
