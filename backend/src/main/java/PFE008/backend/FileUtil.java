@@ -23,11 +23,12 @@ import java.nio.file.StandardCopyOption;
  * @version 2024.06.13
  */
 public class FileUtil {
+    private Path foundFile;
     
     /**
      * Save a file to a directory, with a random code as the file name
      * 
-     * @param fileExtension The extension of the file
+     * @param fileExtension The name of the file
      * @param multipartFile The file to save
      * @param dir The directory to save the file to
      * @return The path to the saved file
@@ -35,15 +36,17 @@ public class FileUtil {
      */
     public static Path saveFile(String fileExtension, MultipartFile multipartFile, String dir) throws IOException {
         Path uploadPath = Paths.get(dir);
-
-        if (Files.notExists(uploadPath)) {
+        Path filePath;
+          
+        if (!Files.exists(uploadPath)) {
             Files.createDirectories(uploadPath);
         }
  
         String fileCode = RandomStringUtils.randomAlphanumeric(8);
-        Path filePath = uploadPath.resolve(fileCode + fileExtension);
          
         try (InputStream inputStream = multipartFile.getInputStream()) {
+            filePath = uploadPath.resolve(fileCode + fileExtension);
+            System.out.println("File saved: " + filePath);
             Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException ioe) {       
             throw new IOException("Could not save file: " + fileCode + fileExtension, ioe);
@@ -60,63 +63,38 @@ public class FileUtil {
      * @throws IOException If the file could not be found
      */
     public Resource getFileAsResource(String fileCode) throws IOException {
-        Path foundFile = Path.of(fileCode);
+        foundFile = Path.of(fileCode);
  
-        if (Files.exists(foundFile)) {
+        if (foundFile != null) {
             return new UrlResource(foundFile.toUri());
         }
          
-        throw new IOException("File not found: " + fileCode);
+        return null;
     }
 
-    /**
-     * Validate the file type using Apache Tika
-     * 
-     * @param multipartFile The file to validate
-     * @return true if the file is a valid type, false otherwise
-     * @throws IOException If an error occurs while reading the file
-     */
     public static boolean isValidFile(MultipartFile multipartFile) throws IOException {
         Tika tika = new Tika();
         try (InputStream input = multipartFile.getInputStream()) {
             String mimeType = tika.detect(input);
-            return mimeType.equals("application/pdf") || mimeType.equals("image/jpeg") || mimeType.equals("image/png");
+            return mimeType.equals("application/pdf") || mimeType.equals("image/jpeg") || mimeType.equals("image/jpg") || mimeType.equals("image/png");
         }
     }
 
-    /**
-     * Cleanup files in the specified directories that start with the given prefix
-     * 
-     * @param inputDir The input directory
-     * @param outputDir The output directory
-     * @param fileNamePrefix The prefix of the files to delete
-     */
     public static void cleanupDirectories(String inputDir, String outputDir, String fileNamePrefix) {
         deleteFilesInDirectory(inputDir, fileNamePrefix);
         deleteFilesInDirectory(outputDir, fileNamePrefix);
     }
 
-    /**
-     * Delete files in a directory that start with a specific prefix
-     * 
-     * @param directoryPath The path of the directory
-     * @param fileNamePrefix The prefix of the files to delete
-     */
     private static void deleteFilesInDirectory(String directoryPath, String fileNamePrefix) {
-        Path dirPath = Paths.get(directoryPath);
-        if (Files.exists(dirPath) && Files.isDirectory(dirPath)) {
-            try {
-                Files.list(dirPath)
-                        .filter(path -> Files.isRegularFile(path) && path.getFileName().toString().startsWith(fileNamePrefix))
-                        .forEach(path -> {
-                            try {
-                                Files.delete(path);
-                            } catch (IOException e) {
-                                System.err.println("Failed to delete file: " + path + " - " + e.getMessage());
-                            }
-                        });
-            } catch (IOException e) {
-                System.err.println("Failed to list files in directory: " + dirPath + " - " + e.getMessage());
+        File directory = new File(directoryPath);
+        if (directory.exists() && directory.isDirectory()) {
+            File[] files = directory.listFiles();
+            if (files != null) {
+                for (File file : files) {
+                    if (file.isFile() && file.getName().startsWith(fileNamePrefix)) {
+                        file.delete();
+                    }
+                }
             }
         }
     }
