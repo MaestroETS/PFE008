@@ -10,7 +10,7 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y \
     unzip \
     software-properties-common \
     lsb-release \
-    git \
+    git
 
 #Installer npm 8.19.3 et Nodejs 10.13.0
 RUN curl -fsSL https://nodejs.org/dist/v18.13.0/node-v18.13.0-linux-x64.tar.xz | tar -xJf - -C /usr/local --strip-components=1
