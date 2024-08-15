@@ -6,6 +6,10 @@ ENV JAVA_HOME=/usr/lib/jvm/jdk-22.0.2-oracle-x64
 ENV GRADLE_HOME=/opt/gradle
 ENV PATH="$JAVA_HOME/bin:$GRADLE_HOME/bin:/venv/bin:$PATH"
 
+# Set timezone environment variables to avoid interactive prompt
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=America/New_York
+
 # Install necessary tools and dependencies
 RUN apt-get update && apt-get upgrade -y && apt-get install -y \
     software-properties-common \
@@ -16,9 +20,12 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y \
     maven \
     flatpak \
     --no-install-recommends && \
-    add-apt-repository ppa:deadsnakes/ppa && \
-    apt-get update && \
-    apt-get install -y \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Add PPA for Python 3.12 and install it
+RUN add-apt-repository ppa:deadsnakes/ppa && \
+    apt-get update && apt-get install -y \
     python3.12 \
     python3.12-venv \
     python3-pip && \
@@ -54,14 +61,4 @@ RUN chmod +x ./entrypoint.sh && sed -i 's/\r$//' ./entrypoint.sh
 # Prepare Audiveris
 RUN mkdir -p backend/Audiveris/dist && \
     cp -r $(flatpak info --show-location org.audiveris.audiveris)/files/bin backend/Audiveris/dist/ && \
-    cp -r $(flatpak info --show-location org.audiveris.audiveris)/files/lib backend/Audiveris/dist/ && \
-    cp -r $(flatpak info --show-location org.audiveris.audiveris)/files/share backend/Audiveris/dist/
-
-# Build the backend using Gradle
-RUN gradle -p backend/ clean build -x test
-
-# Expose the necessary port
-EXPOSE 8080
-
-# Use a smaller entry point
-ENTRYPOINT ["./entrypoint.sh"]
+    cp -r $(flatpak info --show-location org.audiveris.audiveris)/files/lib backend
