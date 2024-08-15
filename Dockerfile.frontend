@@ -1,20 +1,26 @@
+# Use a lightweight Ubuntu base image
 FROM ubuntu:latest
 
 EXPOSE 3000
 
+# Install necessary tools and dependencies
 RUN apt-get update && apt-get upgrade -y && apt-get install -y \
     wget \
     curl \
-    unzip
+    unzip \
+    xz-utils  # Install xz-utils to handle .tar.xz files
 
-#Installer npm 8.19.3 et Nodejs 10.13.0
+# Install Node.js and npm
 RUN curl -fsSL https://nodejs.org/dist/v18.13.0/node-v18.13.0-linux-x64.tar.xz | tar -xJf - -C /usr/local --strip-components=1
 RUN npm install -g npm@8.19.4
 
 WORKDIR /app
 
+# Copy application code
 COPY maestro-app ./maestro-app
 
+# Install application dependencies
 RUN npm --prefix maestro-app/ install
 
+# Start the application
 CMD ["npm", "start", "--prefix", "maestro-app"]
