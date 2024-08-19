@@ -15,7 +15,7 @@ There is one route in the API:
 
 Example request:
 ```
-curl -X POST -F "file=@path/to/file.pdf" http://localhost:8080/convert
+curl -X POST -F "file=@path/to/file.pdf" http://localhost:8080/convert --output midi.midi
 ```
 
 ## Setup
