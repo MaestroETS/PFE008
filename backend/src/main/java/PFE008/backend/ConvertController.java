@@ -35,68 +35,78 @@ public class ConvertController {
     @PostMapping("/convert")
     @CrossOrigin(origins = "*")
     public ResponseEntity<?> convert(@RequestParam("file") MultipartFile multipartFile,
-                                     @RequestParam(value = "tempos", required = false) String tempos) throws IOException {
-        FileUtil downloadUtil = new FileUtil();
-        
-        // Validate input file
-        if (multipartFile.isEmpty()) {
-            return new ResponseEntity<>("Please select a file", HttpStatus.BAD_REQUEST);
-        }
-
-        // check if under 10MB
-        if (multipartFile.getSize() > 10485760) {
-            return new ResponseEntity<>("File is too large", HttpStatus.BAD_REQUEST);
-        }
-
-        // check the file signature
-        if (!FileUtil.isValidFile(multipartFile)) {
-            return new ResponseEntity<>("File is invalid. Must be a pdf, jpg, jpeg or png", HttpStatus.BAD_REQUEST);
-        }
-
-        // Save input file
-        String fileExtension = "." + StringUtils.getFilenameExtension(multipartFile.getOriginalFilename());
-        Path filePath = FileUtil.saveFile(fileExtension, multipartFile, "In");
-        System.out.println("Received tempos: " + tempos);
-        
-        // Convert music sheet to .mxl
-        AudiverisController audiveris = new AudiverisController(tempos);
-        String midiPath = audiveris.convert(filePath.toString());
-
-        // Start a new thread for cleaning up the directories after a delay
-        new Thread(() -> {
-            try {
-                TimeUnit.SECONDS.sleep(3);
-                String workingDir = System.getProperty("user.dir");
-                System.out.println("Cleaning up directories - Deleting files starting with: " + filePath.toString().substring(filePath.toString().lastIndexOf('\\') + 1, filePath.toString().lastIndexOf('.')));
-                FileUtil.cleanupDirectories(workingDir + "\\In", workingDir + "\\Out", filePath.toString().substring(filePath.toString().lastIndexOf('\\') + 1, filePath.toString().lastIndexOf('.')));
-            } catch (InterruptedException e) {
-                System.out.println("Interrupted while waiting to clean up directories: " + e.getMessage());
-            }
-        }).start();
-
-        if (midiPath == null) {
-            return new ResponseEntity<>("Could not convert file", HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-         
-        // Build response
-        Resource resource = null;
+                                     @RequestParam(value = "tempos", required = false) String tempos) {
         try {
-            resource = downloadUtil.getFileAsResource(midiPath);
-        } catch (IOException e) {
-            return ResponseEntity.internalServerError().build();
+            // Validate input file
+            if (multipartFile.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("No file selected. Please select a file to upload.");
+            }
+
+            // Check file size (under 10MB)
+            if (multipartFile.getSize() > 10485760) { // 10MB
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("File is too large. The maximum allowed file size is 10MB.");
+            }
+
+            // Check the file signature
+            if (!FileUtil.isValidFile(multipartFile)) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("Invalid file type. Accepted file types are: PDF, JPG, JPEG, PNG.");
+            }
+
+            // Save input file
+            String fileExtension = "." + StringUtils.getFilenameExtension(multipartFile.getOriginalFilename());
+            Path filePath = FileUtil.saveFile(fileExtension, multipartFile, "In");
+            System.out.println("Received tempos: " + tempos);
+
+            // Convert music sheet to .mxl
+            AudiverisController audiveris = new AudiverisController(tempos);
+            String midiPath = audiveris.convert(filePath.toString());
+
+            if (midiPath == null) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body("File conversion failed. Please check the input file and try again.");
+            }
+
+            // Start a new thread for cleaning up the directories after a delay
+            new Thread(() -> {
+                try {
+                    TimeUnit.SECONDS.sleep(3);
+                    String workingDir = System.getProperty("user.dir");
+                    System.out.println("Cleaning up directories - Deleting files starting with: " + filePath.getFileName().toString());
+                    FileUtil.cleanupDirectories(workingDir + "\\In", workingDir + "\\Out", filePath.getFileName().toString());
+                } catch (InterruptedException e) {
+                    System.out.println("Interrupted while waiting to clean up directories: " + e.getMessage());
+                }
+            }).start();
+
+            // Build response
+            Resource resource;
+            try {
+                resource = FileUtil.getFileAsResource(midiPath);
+            } catch (IOException e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body("Failed to retrieve the converted file. Please try again later.");
+            }
+
+            if (resource == null) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body("Converted file not found. Please try again later.");
+            }
+
+            String contentType = "application/octet-stream";
+            String headerValue = "attachment; filename=\"" + resource.getFilename() + "\"";
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType(contentType))
+                    .header(HttpHeaders.CONTENT_DISPOSITION, headerValue)
+                    .body(resource);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("An unexpected error occurred: " + e.getMessage());
         }
-         
-        if (resource == null) {
-            return new ResponseEntity<>("Could not find converted file", HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-         
-        String contentType = "application/octet-stream";
-        String headerValue = "attachment; filename=\"" + resource.getFilename() + "\"";
-         
-        return ResponseEntity.ok()
-            .contentType(MediaType.parseMediaType(contentType))
-            .header(HttpHeaders.CONTENT_DISPOSITION, headerValue)
-            .body(resource); 
     }
 
     @GetMapping("/health")
