@@ -10,11 +10,31 @@ const useMaestroClient = (): UseMaestroClientResult => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
+  const apiUrl = process.env.BACKEND_URL || 'http://localhost:8080'; // Default value for the backend URL
+
+  const checkBackendHealth = async (): Promise<boolean> => {
+    try {
+      const healthResponse = await fetch(`${apiUrl}/health`, { method: 'GET' });
+      if (!healthResponse.ok) {
+        throw new Error('Backend is not available');
+      }
+      return true;
+    } catch (err) {
+      setError('Backend is not available. Please try again later.');
+      return false;
+    }
+  };
+
   const convert = async (formData: FormData): Promise<void> => {
     setLoading(true);
     setError(null);
 
-    const apiUrl = process.env.BACKEND_URL || 'http://localhost:8080';
+    // Check if backend is alive before proceeding
+    const isBackendAlive = await checkBackendHealth();
+    if (!isBackendAlive) {
+      setLoading(false);
+      return;
+    }
 
     try {
       const response = await fetch(`${apiUrl}/convert`, {
