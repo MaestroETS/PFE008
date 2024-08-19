@@ -1,5 +1,6 @@
 package PFE008.backend;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -15,6 +16,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
@@ -24,11 +26,10 @@ import org.springframework.web.context.WebApplicationContext;
 /**
  * ConvertControllerTest
  *
- * This class contains unit tests for the ConvertController.
- * The tests cover both successful and error scenarios for file conversion.
+ * This class contains unit tests for the ConvertController and also includes the health check tests.
+ * The tests cover both successful and error scenarios for file conversion as well as the /health endpoint.
  * 
- * @author Lafleche Chevrette
- * @version 2024.07.08
+ * @version 2024.08.19
  */
 @SpringBootTest
 public class ConvertControllerTest {
@@ -60,7 +61,7 @@ public class ConvertControllerTest {
                 .contentType(MediaType.MULTIPART_FORM_DATA))
                 .andExpect(status().isOk())
                 .andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"output.mxl\""))
-                .andExpect(content().contentType("application/octet-stream"));
+                .andExpect(content().contentType(MediaType.APPLICATION_OCTET_STREAM));
     }
 
     @Test
@@ -126,6 +127,14 @@ public class ConvertControllerTest {
                 .andExpect(content().string("Could not convert file"));
     }
 
+    @Test
+    public void testHealthCheck() throws Exception {
+        mockMvc.perform(get("/health")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().string("Service is up and running"));
+    }
+
     @AfterAll
     static void cleanup() {
         File directoryOut = new File(System.getProperty("user.dir") + File.separator + "Out" + File.separator);
@@ -148,34 +157,5 @@ public class ConvertControllerTest {
                 }
             }
         }
-    }
-}
-
-/**
- * Health Check Test
- * 
- * This class tests the /health endpoint to verify that the service is running correctly.
- * 
- * @version 2024.08.19
- */
-@SpringBootTest
-public class HealthCheckTest {
-
-    @Autowired
-    private WebApplicationContext webApplicationContext;
-
-    private MockMvc mockMvc;
-
-    @BeforeEach
-    public void setup() {
-        mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
-    }
-
-    @Test
-    public void testHealthCheck() throws Exception {
-        mockMvc.perform(get("/health")
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(content().string("Service is up and running"));
     }
 }
