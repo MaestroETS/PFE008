@@ -1,2 +1,6 @@
 /// <reference types="react-scripts" />
-BACKEND_URL=http://localhost:8080
+declare namespace NodeJS {
+  interface ProcessEnv {
+    REACT_APP_API_URL: string;
+  }
+}
