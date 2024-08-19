@@ -1,5 +1,10 @@
 package PFE008.backend;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -32,6 +37,12 @@ import java.util.concurrent.TimeUnit;
 @RestController
 public class ConvertController {
 
+    @Operation(summary = "Convert a music sheet to MIDI", description = "Accepts a file (PDF, JPG, JPEG, PNG) and converts it to a MIDI file using Audiveris.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "File converted successfully", content = @Content(schema = @Schema(implementation = Resource.class))),
+        @ApiResponse(responseCode = "400", description = "Invalid input file or file too large", content = @Content),
+        @ApiResponse(responseCode = "500", description = "File conversion failed or unexpected error", content = @Content)
+    })
     @PostMapping("/convert")
     @CrossOrigin(origins = "*")
     public ResponseEntity<?> convert(@RequestParam("file") MultipartFile multipartFile,
