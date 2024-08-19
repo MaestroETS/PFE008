@@ -14,8 +14,10 @@ const useMaestroClient = (): UseMaestroClientResult => {
     setLoading(true);
     setError(null);
 
+    const apiUrl = process.env.BACKEND_URL || 'http://localhost:8080';
+
     try {
-      const response = await fetch('http://localhost:8080/convert', {
+      const response = await fetch(`${apiUrl}/convert`, {
         method: 'POST',
         mode: 'cors',
         body: formData,
@@ -25,9 +27,10 @@ const useMaestroClient = (): UseMaestroClientResult => {
         const errorData = await response.json();
         throw new Error(errorData.message || 'An error occurred');
       }
+
       const blob = await response.blob();
 
-      var fileDownload = require('js-file-download');
+      const fileDownload = require('js-file-download');
       fileDownload(blob, `${formData.get("midiFileName")?.toString()}.mid` ?? "myFile.mid");
 
     } catch (err) {
