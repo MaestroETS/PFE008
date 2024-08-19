@@ -1,6 +1,9 @@
 package PFE008.backend;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -18,15 +21,15 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
-
 /**
- * Test Controller for Audiveris
- * 
+ * ConvertControllerTest
+ *
+ * This class contains unit tests for the ConvertController.
+ * The tests cover both successful and error scenarios for file conversion.
  * 
  * @author Lafleche Chevrette
  * @version 2024.07.08
  */
-
 @SpringBootTest
 public class ConvertControllerTest {
 
@@ -35,9 +38,10 @@ public class ConvertControllerTest {
 
     private MockMvc mockMvc;
 
-    private static String TESTPATH = System.getProperty("user.dir") + File.separator 
-    + "src" + File.separator + "test" + File.separator + "java" + File.separator + "PFE008" + File.separator 
-    + "backend" + File.separator + "resources" + File.separator + "tests_java" + File.separator;
+    private static final String TEST_PATH = System.getProperty("user.dir") + File.separator 
+            + "src" + File.separator + "test" + File.separator + "java" + File.separator 
+            + "PFE008" + File.separator + "backend" + File.separator 
+            + "resources" + File.separator + "tests_java" + File.separator;
 
     @BeforeEach
     public void setup() {
@@ -46,94 +50,89 @@ public class ConvertControllerTest {
 
     @Test
     public void testConvertSuccess() throws Exception {
+        Path path = Paths.get(TEST_PATH + "AudiverisController_java_tests.pdf");
+        byte[] file = Files.readAllBytes(path);
 
-    Path path = Paths.get(TESTPATH + "AudiverisController_java_tests.pdf");
-    byte[] file = Files.readAllBytes(path);
+        MockMultipartFile multipartFile = new MockMultipartFile("file", "AudiverisController_java_tests.pdf", "application/pdf", file);
 
-    MockMultipartFile multipartFile = new MockMultipartFile("file", "test.pdf", "application/pdf", file);
-
-    mockMvc.perform(multipart("/convert")
-            .file(multipartFile)
-            .contentType(MediaType.MULTIPART_FORM_DATA))
-            .andExpect(status().isOk());
-        
+        mockMvc.perform(multipart("/convert")
+                .file(multipartFile)
+                .contentType(MediaType.MULTIPART_FORM_DATA))
+                .andExpect(status().isOk())
+                .andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"output.mxl\""))
+                .andExpect(content().contentType("application/octet-stream"));
     }
 
     @Test
     public void testConvertFail() throws Exception {
+        Path path = Paths.get(TEST_PATH + "wrong.pdf");
+        byte[] file = Files.readAllBytes(path);
 
-    Path path = Paths.get(TESTPATH + "wrong.pdf");
-    byte[] file = Files.readAllBytes(path);
+        MockMultipartFile multipartFile = new MockMultipartFile("file", "wrong.pdf", "application/pdf", file);
 
-    MockMultipartFile multipartFile = new MockMultipartFile("file", "test.pdf", "application/pdf", file);
-
-    mockMvc.perform(multipart("/convert")
-            .file(multipartFile)
-            .contentType(MediaType.MULTIPART_FORM_DATA))
-            .andExpect(status().isInternalServerError());
-        
+        mockMvc.perform(multipart("/convert")
+                .file(multipartFile)
+                .contentType(MediaType.MULTIPART_FORM_DATA))
+                .andExpect(status().isInternalServerError())
+                .andExpect(content().string("Could not convert file"));
     }
 
     @Test
     public void testConvertFileNotFound() throws Exception {
-
         MockMultipartFile multipartFile = new MockMultipartFile("file", "test.pdf", "application/pdf", "test data".getBytes());
 
         mockMvc.perform(multipart("/convert")
                 .file(multipartFile)
                 .contentType(MediaType.MULTIPART_FORM_DATA))
-                .andExpect(status().isInternalServerError());
+                .andExpect(status().isInternalServerError())
+                .andExpect(content().string("Could not convert file"));
     }
 
     @Test
     public void testConvertWrongFormat() throws Exception {
-
-        Path path = Paths.get(TESTPATH + "imageTest.jpg");
+        Path path = Paths.get(TEST_PATH + "imageTest.jpg");
         byte[] file = Files.readAllBytes(path);
 
-        MockMultipartFile multipartFile = new MockMultipartFile("file", "test.pdf", "application/pdf", file);
+        MockMultipartFile multipartFile = new MockMultipartFile("file", "imageTest.jpg", "image/jpeg", file);
 
         mockMvc.perform(multipart("/convert")
                 .file(multipartFile)
                 .contentType(MediaType.MULTIPART_FORM_DATA))
-                .andExpect(status().isInternalServerError());
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string("File is invalid. Must be a pdf, jpg, jpeg or png"));
     }
-
 
     @Test
     public void testConvertMaliciousFile() throws Exception {
-
         String maliciousPdf = """
-                                     %PDF-1.4
-                                     1 0 obj
-                                     << /Type /Catalog >>
-                                     endobj
-                                     xref
-                                     0 1
-                                     0000000000 65535 f 
-                                     trailer
-                                     << /Root 1 0 R >>
-                                     %%EOF
-                                     MALICIOUS DATA"""; 
+                %PDF-1.4
+                1 0 obj
+                << /Type /Catalog >>
+                endobj
+                xref
+                0 1
+                0000000000 65535 f 
+                trailer
+                << /Root 1 0 R >>
+                %%EOF
+                MALICIOUS DATA"""; 
 
-        MockMultipartFile multipartFile = new MockMultipartFile("file", "test.pdf", "application/pdf", maliciousPdf.getBytes());
+        MockMultipartFile multipartFile = new MockMultipartFile("file", "malicious.pdf", "application/pdf", maliciousPdf.getBytes());
 
         mockMvc.perform(multipart("/convert")
                 .file(multipartFile)
                 .contentType(MediaType.MULTIPART_FORM_DATA))
-                .andExpect(status().isInternalServerError());
+                .andExpect(status().isInternalServerError())
+                .andExpect(content().string("Could not convert file"));
     }
-
 
     @AfterAll
     static void cleanup() {
-
         File directoryOut = new File(System.getProperty("user.dir") + File.separator + "Out" + File.separator);
         File directoryIn = new File(System.getProperty("user.dir") + File.separator + "In" + File.separator);
 
         deleteFiles(directoryOut);
         deleteFiles(directoryIn);
-
     }
 
     private static void deleteFiles(File directory) {
@@ -143,18 +142,11 @@ public class ConvertControllerTest {
                 for (File file : files) {
                     if (file.isFile()) {
                         if (!file.delete()) {
-                            System.err.println("Impossible to delete : " + file.getAbsolutePath());
+                            System.err.println("Failed to delete: " + file.getAbsolutePath());
                         }
-                    }else{
-                        System.err.println(file.getAbsolutePath() + " is not a file or does not exists");
                     }
                 }
-            } else {
-                System.err.println("No files were found in " + directory.getAbsolutePath());
             }
-        } else {
-            System.err.println(directory.getAbsolutePath() + " is not a directory or does not exists");
         }
     }
-
 }
