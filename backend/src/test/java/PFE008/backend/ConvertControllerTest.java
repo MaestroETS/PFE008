@@ -150,3 +150,32 @@ public class ConvertControllerTest {
         }
     }
 }
+
+/**
+ * Health Check Test
+ * 
+ * This class tests the /health endpoint to verify that the service is running correctly.
+ * 
+ * @version 2024.08.19
+ */
+@SpringBootTest
+public class HealthCheckTest {
+
+    @Autowired
+    private WebApplicationContext webApplicationContext;
+
+    private MockMvc mockMvc;
+
+    @BeforeEach
+    public void setup() {
+        mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
+    }
+
+    @Test
+    public void testHealthCheck() throws Exception {
+        mockMvc.perform(get("/health")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().string("Service is up and running"));
+    }
+}
