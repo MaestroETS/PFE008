@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  maestro-backend:
+    build: 
+      context: .
+      dockerfile: Dockerfile.backend
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./backend:/app/backend
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  maestro-frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      maestro-backend:
+        condition: service_healthy
+    environment:
+      - NODE_ENV=development
+    volumes:
+      - ./maestro-app:/app/maestro-app
+    command: ["npm", "start", "--prefix", "maestro-app"]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+
+volumes:
+  backend-data:
+  frontend-data:
